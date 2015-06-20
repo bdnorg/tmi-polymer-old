@@ -1,0 +1,102 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="Polymer Starter Kit" />
+  <title>tmi-tree-basic</title>
+
+  <link rel="stylesheet" href="../../styles/main.css">
+  <script src="../../bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <script>
+    window.Polymer = window.Polymer || {};
+    window.Polymer.dom = 'shadow';
+  </script>
+
+  <!-- Step 1: import the element to test -->
+  <link rel="import" href="../elements/elements.html">
+<!--
+  <link rel="import" href="../elements/tmi-tree/tmi-tree.html">
+-->
+<!--
+  <script src="../../bower_components/webcomponentsjs/webcomponents.min.js"></script>
+  <link rel="import" href="../../bower_components/polymer/polymer.html">
+-->
+  <script src="../../bower_components/web-component-tester/browser.js"></script>
+  <script src="../../bower_components/test-fixture/test-fixture-mocha.js"></script>
+  <link rel="import" href="../../bower_components/test-fixture/test-fixture.html">
+
+
+
+  <!-- chrome.windows.getAll() data in window.testWins -->
+  <script src="./chrome.windows.test.data.js"></script>
+  <script>
+          window.ttree = [
+            {id: 'wina',
+             tabs: [{id: 1, title: 't1'},
+                    {id:2, title: 't2'}]},
+            {id: 'winb',
+             tabs: [{id: 3, title: 't3'},
+                    {id:4, title: 't4'}]},
+          ];
+  </script>
+
+</head>
+<body>
+
+
+  <test-fixture id="basic">
+    <template>
+      <tmi-tree id="fixture"></tmi-tree>
+    </template>
+  </test-fixture>
+<!--
+  <tmi-tree id="fixture"></tmi-tree>
+-->
+
+  <script>
+    suite('tmi-tree', function() {
+
+//      var el = document.querySelector('tmi-tree');
+//      var el = document.querySelector('#fixture');
+      setup(function() {
+        el = fixture('basic');
+      });
+
+      test('Dummy test', function(done) {
+        flush(function() {
+          assert.equal(el.id, "fixture");
+          done();
+        });
+      });
+
+      test('Check first line', function(done) {
+        flush(function() {
+          var firstLine = document.querySelector('tmi-tree::shadow tmi-window::shadow tmi-win-display::shadow span').innerText;
+          assert.equal(firstLine, "a - Google Search");
+//          assert.equal(el.getFirstEl(), "a - Google Search");
+          done();
+        });
+      });
+
+      test('Check pointer', function(done) {
+        flush(function() {
+          assert.equal(el.getPointer().id, 890);
+          done();
+        });
+      });
+
+      test('Check key press', function(done) {
+        flush(function() {
+          el.down();
+          assert.equal(el.getPointer().id, 919);
+          done();
+        });
+      });
+
+    });
+  </script>
+
+</body>
+</html>

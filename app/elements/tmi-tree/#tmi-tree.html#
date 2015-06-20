@@ -1,0 +1,240 @@
+<link rel="stylesheet" href="tmi-tree.css">
+
+
+<!-- chrome.windows.getAll() data in window.testWins -->
+<script src="../../test/chrome.windows.test.data.js"></script>
+<script>
+          window.ttree = [
+            {id: 'wina',
+             tabs: [{id: 1, title: 't1'},
+                    {id:2, title: 't2'}]},
+            {id: 'winb',
+             tabs: [{id: 3, title: 't3'},
+                    {id:4, title: 't4'}]},
+          ];
+</script>
+
+<dom-module id="tmi-win-display">
+  <template>
+    [<iron-icon icon="receipt"
+                style="height: 16px; width: 16px;"></iron-icon>
+     <span>[[win.tabs.0.title]]</span>]
+  </template>
+</dom-module>
+<script>
+  (function () {
+    Polymer({
+      is: "tmi-win-display",
+      properties: {
+        win: {
+          type: "object",
+        },
+      },
+      ready: function() {
+      },
+    });
+  })();
+</script>
+
+<!--
+    <core-tooltip label="I'm a tooltip" position="bottom ">
+      <div tip>
+        <tmi-win-display id="{{win.id}}" win="{{win}}"></tmi-win-display>
+      </div>
+    </core-tooltip>
+
+      <div class="clip {{ {pointer: win.id == pointer} | tokenList}}">
+      </div>
+-->
+
+<dom-module id="tmi-window">
+  <style>
+   .ind {margin-left: 2em;}
+   .clip {white-space: nowrap; overflow: hidden;}
+   .pointer {background-color: red;}
+   .collapse-content {
+     padding: 5px;
+     border: 1px solid #dedede;
+  }
+  </style>
+  <template>
+    <div class="clip {{ {pointer: win.id == pointer} | tokenList}}">
+      <span on-click="toggle">
+        <iron-icon icon="expand-more"
+                   style="height: 16px; width: 16px;"></iron-icon>
+      </span>
+      <input type="checkbox" name="winCheck" value="{{win.id}}">
+      (<span>{{win.tabs.length}}</span>)
+        <tmi-win-display win="{{win}}"></tmi-win-display>
+    </div>
+
+    <iron-collapse id="collapse" class="">
+      <div class="collapse-content ind clip">
+        <template is="dom-repeat" items="{{win.tabs}}" as="tab">
+          <tmi-tab tab="{{tab}}"></tmi-tab>
+        </template>
+      </div>
+    </iron-collapse>
+  </template>
+</dom-module>
+<script>
+  (function () {
+    Polymer({
+      is: "tmi-window",
+      properties: {
+        win: {
+          type: "object",
+        },
+      },
+      observe: {
+        pointer: 'pointerChange'
+      },
+      pointerChange: function(){
+        console.log('pointerChange');
+      },
+//      collapse: function(event, detail, sender) {
+      toggle: function() {
+        this.$.collapse.toggle();
+      },
+    });
+  })();
+</script>
+
+<dom-module id="tmi-tab">
+  <style>
+    .ind {margin-left: 1.5em;
+    .clip {white-space: nowrap; overflow: hidden;}
+    }
+  </style>
+  <template>
+    <div>
+      <input type="checkbox" name="tabCheck" value="{{tab.id}}">
+      <span>
+         <iron-icon icon="receipt"
+                    style="height: 16px; width: 16px;"></iron-icon>
+      </span>
+      <span>{{tab.title}}</span>
+    </div>
+  </template>
+</dom-module>
+<script>
+  (function () {
+    Polymer({
+      is: "tmi-tab",
+      properties: {
+        tab: {
+          type: "object",
+        },
+      },
+    });
+  })();
+</script>
+
+<dom-module id="tmi-tree">
+  <style>
+    .ind {margin-left: 1.5em;}
+    .clip {white-space: nowrap; overflow: hidden;}
+  </style>
+  <template>
+    Tree
+    <div class="ind">
+      <template is="dom-repeat" items="{{wins}}" as="win">
+        <tmi-window win="[[win]]" pointer="{{pointerId}}"></tmi-window>
+      </template>
+    </div>
+  </template>
+</dom-module>
+  <script>
+    (function () {
+      Polymer({
+        is: "tmi-tree",
+        properties: {
+          wins:{
+            type: Array,
+            notify: true,
+          }
+        },
+        ready: function() {
+          this.ttree = window.ttree;
+          this.wins = window.testWins;
+          console.log("wins!: ", this.wins);
+          this.pointer = {id: 890};
+          this.pointerId = 890;
+
+          /*
+          var app = document.querySelector('#' + this.appId);
+          this.keyMap = app.tt;
+          app.loadKeyMap(this,[])
+          */
+        },
+
+        test: function(t){
+          console.log(t)
+        },
+        getFirstEl: function(){
+//          return this.querySelector('tmi-window')
+          return document.querySelector('tmi-tree::shadow tmi-window::shadow tmi-win-display::shadow span').innerText;
+        },
+
+        //Tree movement
+        down: function(){
+          this.pointer = {id: 919};
+          this.pointerId = 919;
+          console.log(this.pointer.id)
+        },
+        up: function(){
+          this.pointer = {id: 974};
+          this.pointerId = 974;
+          console.log(this.pointer.id)
+        },
+        right: function(){},
+        left: function(){},
+        downTen: function(){},
+        upTen: function(){},
+        moveTop: function(){},
+        moveBottom: function(){},
+
+        //nav wintabs
+//        browser.focusWin: function(win){},
+//        browser.focusTab: function(tab){},
+        pin: function(){},
+        searchMode: function(){},
+        clearInput: function(){},
+        goMark: function(){},
+        mark: function(){},
+
+        //manage wintabs
+        mark: function(){},
+        mark: function(){},
+        putAfterTab: function(tab){},
+        putEndOfWin: function(win){},
+        putNew: function(){},
+        name: function(){},
+        toSave: function(){},
+        close: function(){},
+//        delete: function(){},
+
+        //Freezing
+        makeFreezer: function(closed){},
+//        browser.bmFreeze: function(win){},
+//        browser.freezeAll: function(key){},
+//        browser.freezeTab: function(tab){},
+
+
+        //Popup manage
+//        break: function(){},
+        quit: function(){},
+        refresh: function(){},
+        getPointer: function(){return this.pointer; },
+        getPointerWin: function(){return {id: 9998, type: 'win'}},
+        injectPointer: function(func) {
+          return function(){ func(this.getPointer()); };
+        },
+        injectPointerWin: function(func) {
+          return function(){ func(this.getPointerWin()); };
+        },
+
+
+      });
+    })();
+  </script>

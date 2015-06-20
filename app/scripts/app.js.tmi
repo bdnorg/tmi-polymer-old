@@ -1,0 +1,104 @@
+(function (document) {
+  'use strict';
+
+  // Grab a reference to our auto-binding template
+  // and give it some initial binding values
+  // Learn more about auto-binding templates at http://goo.gl/Dx1u2g
+  var app = document.querySelector('#app');
+//  app.appName = 'Yo, Polymer App!';
+
+  // Listen for template bound event to know when bindings
+  // have resolved and content has been stamped to the page
+  app.addEventListener('template-bound', function() {
+    console.log('Our app is ready to rock!');
+    var tree = document.querySelector('#main-tree');
+    app.loadKeyMap(tree, []);
+
+  });
+
+
+  app.loadKeyMap = function(tree, docs){
+// * Keys: [args, keys, desc, func]
+//      args: docHeader, doc, none, anyKey, global,
+//        win, tab, pointer
+    app.keyMap = [
+    //tree movement
+    ['docHeader', 'Tree movement'],
+    ['doc', 'jkhl \u2190\u2191\u2192\u2193', 'movement'],
+    ['doc', 'jkhl \u25C0\u25B2\u25BA\u25BC', 'movement'],
+    ['doc', 'jkhl \u25C5\u25B5\u25BB\u25BF', 'movement'],
+    ['none', 'j', '', tree.down],
+    ['none', 'k', '', tree.up],
+    ['none', 'h', '', tree.right],
+    ['none', 'l', '', tree.left],
+    ['doc', 'shift+ jk v^', 'move x 10'],
+    ['none', 'shift+j', '', tree.downTen],
+    ['none', 'shift+k', '', tree.upTen],
+    ['none', '1 shift+g', 'move to top', tree.moveTop],
+    ['none', 'shift+g', 'move to bottome', tree.moveBottom],
+
+    //nav wintabs
+    ['docHeader', 'Nav wintabs'],
+    ['pointerByType', 'enter', 'focus / open', {
+      'win': tree.focusWin,
+      'tab': tree.focusTab,
+      'closedTab': tree.openClosedTab,
+      'closedWin': tree.openClosedWin,
+    }],
+    ['none', 'o', '(un)pin window', tree.pin],
+    ['none', '/', 'search', tree.searchMode],
+    ['none', 'escape', 'clear search', tree.clearInput],
+    ['none', "'", "goto tag", tree.goMark],
+    ['none', "m", "mark tag", tree.mark],
+
+//manage wintabs
+    ['docHeader', 'Manage wintabs'],
+    ['none', 'x', 'select node', tree.select],
+    ['none', 'shift+x', 'mark tabs to end of win', tree.markToEnd],
+    ['pointerByType', 'p', 'Paste/move marked tabs',{
+      'tab': tree.putAfterTab,
+      'win': tree.putEndOfWin,
+    }],
+//    ['tab', 'p', '', tree.putAfterTab],
+//    ['win', 'p', '', tree.putEndOfWin],
+    ['none', 'P', 'marked tabs to new window', tree.putNewWin],
+    ['none', 'n', 'name window', tree.nameWin],
+    ['none', 'w s', 'mark Window to Save', tree.toSave],
+    ['none', 'w c', 'Close Window (keep node)', tree.closeWin],
+    ['none', 'w d', 'Window Delete (for closed node)', tree.deleteWin],
+
+//Freezing
+    ['docHeader', 'Manage wintabs'],
+    ['closed', 'F', 'Make Freezer: from Close Window', tree.makeFreezer],
+    ['win', 'f b', 'Freeze to Bookmark', tree.bmFreeze],
+    ['key', 'f a', 'Freeze All non-pinned wins', tree.freezeAll],
+    ['tab', 'f f', 'Freeze calling tab', tree.freezeTab],
+
+//Popup manage
+    ['docHeader', 'Manage popup'],
+    ['none', 'T', 'break point for testing', tree.doBreakPoint],
+    ['none', 'q', 'close TMI', tree.closeTmi],
+    ['none', 'r', 'Refresh', tree.refreshTmi],
+//    ^a, ^z
+  ];
+
+    app.keyOut={};
+    app.keyMap.forEach(function(keyRow){
+      if(keyRow[0] != 'docHeader' && keyRow[0] != 'doc'){
+        app.keyOut[keyRow[1]] = keyRow;
+      }
+    });
+  };
+
+
+  app.keyHandler = function(e, detail, sender) {
+    var key = detail.key;
+    console.log("key: ", key, app.keyOut[key]);
+    if (app.keyOut[key]) {
+      app.keyOut[key][3]();
+    };
+  };
+
+// wrap document so it plays nice with other libraries
+// http://www.polymer-project.org/platform/shadow-dom.html#wrappers
+})(wrap(document));
