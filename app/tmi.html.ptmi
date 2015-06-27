@@ -50,8 +50,8 @@
           <core-icon-button icon="menu"
                             core-drawer-toggle
                             id="core_icon_button">
-            Menu
           </core-icon-button>
+          MM
         </core-toolbar>
 
         <!-- Drawer Content -->
@@ -74,6 +74,8 @@
         </div>
 
       </core-header-panel>
+      TT
+    </core-drawer-panel>
 
       <!-- Main -->
       <core-header-panel main>

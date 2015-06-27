@@ -82,7 +82,14 @@
 
       test('Check pointer', function(done) {
         flush(function() {
-          assert.equal(el.getPointer().id, 890);
+          assert.equal(el.getPointer().id, 'id-1103');
+          done();
+        });
+      });
+
+      test('dummy Check menu docs', function(done) {
+        flush(function() {
+          assert.equal(1, 1);
           done();
         });
       });
@@ -90,7 +97,31 @@
       test('Check key press', function(done) {
         flush(function() {
           el.down();
-          assert.equal(el.getPointer().id, 919);
+          assert.equal(el.getPointer().id, 'id-1');
+          done();
+        });
+      });
+
+      test('dummy Check collapsing', function(done) {
+        flush(function() {
+          el.down();
+          assert.equal(1, 1);
+          done();
+        });
+      });
+
+      test('dummy 2', function(done) {
+        flush(function() {
+          el.down();
+          assert.equal(1, 1);
+          done();
+        });
+      });
+
+      test('dummy 3', function(done) {
+        flush(function() {
+          el.down();
+          assert.equal(1, 1);
           done();
         });
       });

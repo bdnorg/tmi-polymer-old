@@ -4,14 +4,7 @@
 <!-- chrome.windows.getAll() data in window.testWins -->
 <script src="../../test/chrome.windows.test.data.js"></script>
 <script>
-          window.ttree = [
-            {id: 'wina',
-             tabs: [{id: 1, title: 't1'},
-                    {id:2, title: 't2'}]},
-            {id: 'winb',
-             tabs: [{id: 3, title: 't3'},
-                    {id:4, title: 't4'}]},
-          ];
+  console.log("window.testWins: ", window.testWins);
 </script>
 
 <dom-module id="tmi-win-display">
@@ -49,29 +42,47 @@
 
 <dom-module id="tmi-window">
   <style>
+   .tabBlock{
+     margin-left: 2em;
+     white-space: nowrap;
+     overflow: hidden;
+     background-color: white;
+   }
    .ind {margin-left: 2em;}
    .clip {white-space: nowrap; overflow: hidden;}
-   .pointer {background-color: red;}
+   :host {
+     display: block;
+     border: solid white 1px;
+   }
+   :host([pointer]) {
+     background-color: pink;
+     border: solid red 1px;
+   }
    .collapse-content {
      padding: 5px;
      border: 1px solid #dedede;
   }
   </style>
   <template>
+<!--
     <div class="clip {{ {pointer: win.id == pointer} | tokenList}}">
+-->
+    <div class="clip"> <div id="pnode">
       <span on-click="toggle">
         <iron-icon icon="expand-more"
                    style="height: 16px; width: 16px;"></iron-icon>
       </span>
       <input type="checkbox" name="winCheck" value="{{win.id}}">
-      (<span>{{win.tabs.length}}</span>)
-        <tmi-win-display win="{{win}}"></tmi-win-display>
-    </div>
+      (<span>{{win.win.tabs.length}}</span>)
+        <tmi-win-display win="{{win.win}}"></tmi-win-display>
+        - <span>{{win.id}}</span>
+    </div></div>
 
     <iron-collapse id="collapse" class="">
-      <div class="collapse-content ind clip">
-        <template is="dom-repeat" items="{{win.tabs}}" as="tab">
-          <tmi-tab tab="{{tab}}"></tmi-tab>
+      <div class="collapse-content tabBlock ind clip">
+        <template is="dom-repeat" items="{{win.win.tabs}}" as="tab">
+          <tmi-tab tab="{{tab}}" id="{{tab.id}}"
+                   class="node"></tmi-tab>
         </template>
       </div>
     </iron-collapse>
@@ -85,13 +96,25 @@
         win: {
           type: "object",
         },
+        pointer: {
+          type: Boolean,
+          notify: true,
+        }
       },
-      observe: {
-        pointer: 'pointerChange'
-      },
+//      observers: [
+//        'pointerChange(win.pointer)',
+//      ],
       pointerChange: function(){
         console.log('pointerChange');
+        if (this.win.pointer){
+//          this.$.pnode.classList.add('pointer')
+          this.classList.add('pointer')
+        } else {
+//          this.$.pnode.classList.remove('pointer')
+          this.classList.remove('pointer')
+        }
       },
+
 //      collapse: function(event, detail, sender) {
       toggle: function() {
         this.$.collapse.toggle();
@@ -102,6 +125,8 @@
 
 <dom-module id="tmi-tab">
   <style>
+    :host {display: block;}
+    :host([pointer]) {background-color: pink;}
     .ind {margin-left: 1.5em;
     .clip {white-space: nowrap; overflow: hidden;}
     }
@@ -132,14 +157,16 @@
 
 <dom-module id="tmi-tree">
   <style>
+    .pointer {background-color: pink;}
     .ind {margin-left: 1.5em;}
     .clip {white-space: nowrap; overflow: hidden;}
   </style>
   <template>
     Tree
     <div class="ind">
-      <template is="dom-repeat" items="{{wins}}" as="win">
-        <tmi-window win="[[win]]" pointer="{{pointerId}}"></tmi-window>
+      <template is="dom-repeat" items="{{tree}}" as="win">
+        <tmi-window win="[[win]]" id="[[win.id]]" class="node"
+                    pointer$="{{win.pointer}}"></tmi-window>
       </template>
     </div>
   </template>
@@ -155,11 +182,9 @@
           }
         },
         ready: function() {
-          this.ttree = window.ttree;
-          this.wins = window.testWins;
-          console.log("wins!: ", this.wins);
-          this.pointer = {id: 890};
-          this.pointerId = 890;
+          this.tree = this.genTestTree();
+          this.pointer = this.tree[0];
+//          this.querySelector('::shadow tmi-window') .classList.add('pointer')
 
           /*
           var app = document.querySelector('#' + this.appId);
@@ -176,19 +201,65 @@
           return document.querySelector('tmi-tree::shadow tmi-window::shadow tmi-win-display::shadow span').innerText;
         },
 
+        // Tree helpers
+        genTestTree: function(t){
+          this.wins = window.testWins;
+          var tree = [];
+          for (win of this.wins) {
+            tree.push({win: win, id: 'id-' + win.id})
+          }
+          tree[0].pointer = true;
+          return tree;
+        },
+        mvPointer: function(node){
+          this.set('pointer.pointer', false);
+          this.pointer=node;
+          this.set('pointer.pointer', true);
+        },
+        getVisibleEls: function(){
+          return this.shadowRoot.querySelectorAll('.node, ::shadow .iron-collapse-opened .node')
+        },
+        getPointer: function(){
+          return this.shadowRoot.querySelector('.node[pointer], ::shadow .iron-collapse-opened .node[pointer]')
+
+/*
+          var elList = this.getVisibleEls();
+          for (var i = 0; i < elList.length; i++) {
+            if (elList[i].hasAttribute('pointer')){
+              return elList[i];
+            }
+          };
+*/
+        },
+        getPointerIndex: function(elList){
+          for (var i = 0; i < elList.length; i++) {
+            if (elList[i].hasAttribute('pointer')){
+              return i;
+            }
+          };
+        },
+
         //Tree movement
         down: function(){
-          this.pointer = {id: 919};
-          this.pointerId = 919;
-          console.log(this.pointer.id)
+          var elList = this.getVisibleEls();
+          var i = this.getPointerIndex(elList);
+          elList[i].removeAttribute('pointer');
+          elList[i+1].setAttribute('pointer', '');
+//          this.pointerEl = app.tree.shadowRoot.querySelector('#id-565::shadow .iron-collapse-opened tmi-tab, #id-565 + tmi-window');
         },
         up: function(){
-          this.pointer = {id: 974};
-          this.pointerId = 974;
-          console.log(this.pointer.id)
+          var elList = this.getVisibleEls();
+          var i = this.getPointerIndex(elList);
+          elList[i].removeAttribute('pointer');
+          elList[i-1].setAttribute('pointer', '');
         },
-        right: function(){},
-        left: function(){},
+        right: function(){
+//todo getPointerWin
+          this.getPointer().toggle();
+        },
+        left: function(){
+          this.getPointer().toggle();
+        },
         downTen: function(){},
         upTen: function(){},
         moveTop: function(){},
@@ -225,8 +296,8 @@
 //        break: function(){},
         quit: function(){},
         refresh: function(){},
-        getPointer: function(){return {id: 9999, type: 'win'}},
-        getPointer: function(){return this.pointer; },
+//        getPointer: function(){return {id: 9999, type: 'win'}},
+//        getPointer: function(){return this.pointer; },
         getPointerWin: function(){return {id: 9998, type: 'win'}},
         injectPointer: function(func) {
           return function(){ func(this.getPointer()); };
@@ -239,3 +310,19 @@
       });
     })();
   </script>
+
+
+<dom-module id="tmi-browser">
+</dom-module>
+<script>
+  (function () {
+    Polymer({
+      is: "tmi-browser",
+      properties: {
+        wins: {
+          type: "object",
+        },
+      },
+    });
+  })();
+</script>

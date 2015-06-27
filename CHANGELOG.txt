@@ -1,0 +1,27 @@
+- Polymer Starter Kit
+- Display test data
+- Framework for keys and commands
+- Initial test framework
+--- First commit
+- keys: basic iron-a11y-keys work
+- menu: basics work
+- pointer: basics work
+--- commit
+
+- templates: change win to node, make pretty
+- menu: FOUC, onclicks work,
+- pointer: collapse from tab, wrap, api to set, pointer is el
+- keys: multikey sequences, data scructure nest docheaders, diff inputs, multikey seq)
+
+--- Todo
+- create pinned section
+- tmi-browser component
+- fix styles
+- dynamic docs
+- storage: data model
+- search
+
+--- Issues
+- want deep selector: like to walk a tree
+- querySelector doesn't work on id's beginning w/ number
+- want object observer: observing a path(e.g. user.manager) requires set
