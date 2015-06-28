@@ -81,8 +81,9 @@
     <iron-collapse id="collapse" class="">
       <div class="collapse-content tabBlock ind clip">
         <template is="dom-repeat" items="{{win.win.tabs}}" as="tab">
-          <tmi-tab tab="{{tab}}" id="{{tab.id}}"
-                   class="node"></tmi-tab>
+          <tmi-tab tab="{{tab}}" id="{{makeId(tab.id)}}"
+                   ttree="{{ttree}}" winid="{{makeId(tab.windowId)}}"
+                   ttest="lk" class="node"></tmi-tab>
         </template>
       </div>
     </iron-collapse>
@@ -94,29 +95,25 @@
       is: "tmi-window",
       properties: {
         win: {
-          type: "object",
+          type: Object,
+        },
+        ttree: {
+          type: Object,
         },
         pointer: {
           type: Boolean,
           notify: true,
         }
       },
-//      observers: [
-//        'pointerChange(win.pointer)',
-//      ],
-      pointerChange: function(){
-        console.log('pointerChange');
-        if (this.win.pointer){
-//          this.$.pnode.classList.add('pointer')
-          this.classList.add('pointer')
-        } else {
-//          this.$.pnode.classList.remove('pointer')
-          this.classList.remove('pointer')
-        }
+      makeId: function(id){
+        return 'id-' + id;
       },
 
 //      collapse: function(event, detail, sender) {
       toggle: function() {
+        if (this.ttree.getPointerWin().id == this.id) {
+          this.ttree.setPointerId(this.id);
+        }
         this.$.collapse.toggle();
       },
     });
@@ -148,9 +145,20 @@
       is: "tmi-tab",
       properties: {
         tab: {
-          type: "object",
+          type: Object,
+        },
+        ttree: {
+          type: Object,
+        },
+        winid: {
+          readOnly: true,
+          reflectToAttribute: true,
+          type: String,
         },
       },
+      getWinId: function(){
+        return this.tab.windowId;
+      }
     });
   })();
 </script>
@@ -164,8 +172,8 @@
   <template>
     Tree
     <div class="ind">
-      <template is="dom-repeat" items="{{tree}}" as="win">
-        <tmi-window win="[[win]]" id="[[win.id]]" class="node"
+      <template is="dom-repeat" items="{{model}}" as="win">
+        <tmi-window win="[[win]]" id="[[win.id]]" class="node" ttree="{{ttree}}"
                     pointer$="{{win.pointer}}"></tmi-window>
       </template>
     </div>
@@ -179,24 +187,20 @@
           wins:{
             type: Array,
             notify: true,
-          }
+          },
         },
         ready: function() {
-          this.tree = this.genTestTree();
-          this.pointer = this.tree[0];
-//          this.querySelector('::shadow tmi-window') .classList.add('pointer')
-
-          /*
-          var app = document.querySelector('#' + this.appId);
-          this.keyMap = app.tt;
-          app.loadKeyMap(this,[])
-          */
+          this.model = this.genTestTree();
+          this.ttree = this;
         },
 
         test: function(t){
           console.log(t)
         },
         getFirstEl: function(){
+          return this.myQuery('tmi-window');
+        },
+        getFirstElTxt: function(){
 //          return this.querySelector('tmi-window')
           return document.querySelector('tmi-tree::shadow tmi-window::shadow tmi-win-display::shadow span').innerText;
         },
@@ -208,28 +212,46 @@
           for (win of this.wins) {
             tree.push({win: win, id: 'id-' + win.id})
           }
+//          this.setPointer(this.getFirstEl());
           tree[0].pointer = true;
           return tree;
         },
-        mvPointer: function(node){
-          this.set('pointer.pointer', false);
-          this.pointer=node;
-          this.set('pointer.pointer', true);
+        myQuery: function(query){
+          return this.shadowRoot.querySelector('::shadow .iron-collapse-opened '
+                                                + query + ', ' + query);
+        },
+        makeId: function(id){
+          return 'id-' + id;
+        },
+        setPointer: function(el){
+          var oldEl = this.getPointer();
+          if (oldEl) {
+            this.getPointer().removeAttribute('pointer');
+          }
+          if (el) {
+            el.setAttribute('pointer', '');
+          } else {
+            this.getFirstEl().setAttribute('pointer', '');
+          }
+        },
+        setPointerId: function(id){
+          var newEl = this.getNode(id);
+          if (newEl) {
+            this.setPointer(newEl);
+          };
+        },
+        getPointer: function(){
+          return this.myQuery('.node[pointer]');
+        },
+        getPointerWin: function(){
+          var el = this.getPointer();
+          if (el.tagName == 'TMI-TAB'){
+            return this.getNode(this.makeId(el.getWinId()));
+          }
+          return el;
         },
         getVisibleEls: function(){
           return this.shadowRoot.querySelectorAll('.node, ::shadow .iron-collapse-opened .node')
-        },
-        getPointer: function(){
-          return this.shadowRoot.querySelector('.node[pointer], ::shadow .iron-collapse-opened .node[pointer]')
-
-/*
-          var elList = this.getVisibleEls();
-          for (var i = 0; i < elList.length; i++) {
-            if (elList[i].hasAttribute('pointer')){
-              return elList[i];
-            }
-          };
-*/
         },
         getPointerIndex: function(elList){
           for (var i = 0; i < elList.length; i++) {
@@ -238,27 +260,30 @@
             }
           };
         },
+        getNode: function(id){
+          return this.myQuery('#' + id);
+        },
 
         //Tree movement
         down: function(){
           var elList = this.getVisibleEls();
           var i = this.getPointerIndex(elList);
           elList[i].removeAttribute('pointer');
-          elList[i+1].setAttribute('pointer', '');
-//          this.pointerEl = app.tree.shadowRoot.querySelector('#id-565::shadow .iron-collapse-opened tmi-tab, #id-565 + tmi-window');
+//          elList[i+1].setAttribute('pointer', '');
+          elList[(i+1 + elList.length) % elList.length].setAttribute('pointer', '');
         },
         up: function(){
           var elList = this.getVisibleEls();
           var i = this.getPointerIndex(elList);
           elList[i].removeAttribute('pointer');
-          elList[i-1].setAttribute('pointer', '');
+//          elList[i-1].setAttribute('pointer', '');
+          elList[(i-1 + elList.length) % elList.length].setAttribute('pointer', '');
         },
         right: function(){
-//todo getPointerWin
-          this.getPointer().toggle();
+          this.getPointerWin().toggle();
         },
         left: function(){
-          this.getPointer().toggle();
+          this.getPointerWin().toggle();
         },
         downTen: function(){},
         upTen: function(){},
@@ -296,9 +321,6 @@
 //        break: function(){},
         quit: function(){},
         refresh: function(){},
-//        getPointer: function(){return {id: 9999, type: 'win'}},
-//        getPointer: function(){return this.pointer; },
-        getPointerWin: function(){return {id: 9998, type: 'win'}},
         injectPointer: function(func) {
           return function(){ func(this.getPointer()); };
         },

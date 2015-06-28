@@ -7,19 +7,26 @@
 - menu: basics work
 - pointer: basics work
 --- commit
+- menu: space toggles,
+- pointer: collapse from tab, wrap around, api to set, pointer is el
+--- commit
 
-- templates: change win to node, make pretty
-- menu: FOUC, onclicks work,
-- pointer: collapse from tab, wrap, api to set, pointer is el
-- keys: multikey sequences, data scructure nest docheaders, diff inputs, multikey seq)
+
+--- 0 Todo
+- templates: change win to node
+- keys: data scructure, broken{? / ...}, wrappers, multikey sequences, different trees
+- menu: toolbar too big, FOUC, onclicks work,
+- pointer: initial pointer. point to collections
 
 --- Todo
 - create pinned section
-- tmi-browser component
-- fix styles
+- tmi-browser: make component, update from real tabs
+- styles: global, make pretty
 - dynamic docs
-- storage: data model
+- storage: data model, link stored to real, use bookmarks
 - search
+- labels
+- auto close
 
 --- Issues
 - want deep selector: like to walk a tree

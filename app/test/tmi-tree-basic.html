@@ -80,16 +80,44 @@
         });
       });
 
-      test('Check pointer', function(done) {
+      test('Check pointer movement', function(done) {
         flush(function() {
+          el.up();  //wraps around
+          assert.equal(el.getPointer().id, 'id-1061');
+          el.down();
           assert.equal(el.getPointer().id, 'id-1103');
+          el.down();
+          el.down();
+          el.right(); //need async test
+          el.up();
+          assert.equal(el.getPointer().id, 'id-1');
+          el.down();
+          assert.equal(el.getPointer().id, 'id-565');
+
+//          assert.equal(el.myQuery('#id-595'), 'id-565');
+
           done();
+/*
+          setTimeout(funciton(done){
+            el.down();
+            el.down();
+            assert.equal(el.getPointer().id, 'id-976');
+            el.left();
+            assert.equal(el.getPointer().id, 'id-565');
+            done();
+          }, 200);
+*/
         });
       });
 
-      test('dummy Check menu docs', function(done) {
+      test('Check pointer API', function(done) {
         flush(function() {
-          assert.equal(1, 1);
+          el.setPointerId('id-883')
+ //         assert.equal(el.getPointer().id, 'id-883');
+ //         el.setPointer(el.getFirstEl)
+ //         assert.equal(el.getPointer().id, 'id-1103');
+//          el.getPointerWin();
+
           done();
         });
       });

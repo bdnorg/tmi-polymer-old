@@ -45,89 +45,122 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     }
   };
 
-  app.keyHandler = function(e, detail, sender) {
-    var key = detail.key;
-    var func = app.keyOut[key][3];
-    console.log("key: ", key, app.keyOut[key], func);
-    if (app.keyOut[key]) {
-      app.tree[func]();
-    };
+  app.keyClass = {
+    tree: document.querySelector('#main-tree'),
+    app: app,
   };
+
+  app.getKeyStr = function(detail) {
+    var shift = (detail.keyboardEvent.shiftKey ? "shift+" : "") ;
+    var ctrl = (detail.keyboardEvent.ctrlKey ? "ctrl+" : "") ;
+    var alt = (detail.keyboardEvent.altKey ? "alt+" : "") ;
+    return shift + ctrl + alt + detail.key ;
+  };
+
+  app.keyHandler = function(e, detail, sender) {
+    var key = app.getKeyStr(detail);
+    console.log("key: ", key, app.keyOut[key], e);
+    if (! app.keyOut[key]) { return; }
+    var keyClass = app.keyOut[key][3];
+    var func = app.keyOut[key][4];
+    if (app.keyOut[key]) {
+//      app.keyClass[class][func]();
+      if (keyClass == 'tree') {
+        app.tree[func]();
+      } else {
+        app[func]();
+      }
+    };
+// ?: document.querySelector('paper-drawer-panel').togglePanel()
+  };
+
+  app.showHelp = function(){
+   document.querySelector('paper-drawer-panel').togglePanel()
+  }
 
   app.isEq = function(arg1, arg2){
     return arg1 === arg2;
   }
 
   app.loadKeyMap = function(){
-// * Keys: [args, keys, desc, func]
+// * Keys: [args, keys, desc, keyClass, func]
 //      args: docHeader, doc, none, anyKey, global,
 //        win, tab, pointer
     app.keyMap = [
     //tree movement
-    ['docHeader', 'Tree movement'],
-    ['doc', 'jkhl \u2190\u2191\u2192\u2193', 'movement'],
-    ['doc', 'jkhl \u25C0\u25B2\u25BA\u25BC', 'movement'],
-    ['none', 'j', '', 'down'],
-    ['none', 'k', '', 'up'],
-    ['none', 'h', '', 'left'],
-    ['none', 'l', '', 'right'],
-    ['doc', 'shift+ jk\u25B2\u25BC', 'move x 10'],
-    ['none', 'shift+j', '', 'downTen'],
-    ['none', 'shift+k', '', 'upTen'],
-    ['none', '1 shift+g', 'move to top', 'moveTop'],
-    ['none', 'shift+g', 'move to bottom', 'moveBottom'],
+    ['docHeader', 'Tree movement', [
+      ['doc', 'jkhl \u2190\u2191\u2192\u2193', 'movement'],
+      ['doc', 'jkhl \u25C0\u25B2\u25BA\u25BC', 'movement'],
+      ['none', 'j', '', 'tree', 'down'],
+      ['none', 'k', '', 'tree', 'up'],
+      ['none', 'h', '', 'tree', 'left'],
+      ['none', 'l', '', 'tree', 'right'],
+      ['doc', 'shift+ jk\u25B2\u25BC', 'move x 10'],
+      ['none', 'shift+j', '', 'tree', 'downTen'],
+      ['none', 'shift+k', '', 'tree', 'upTen'],
+      ['none', '1 shift+g', 'move to top', 'tree', 'moveTop'],
+      ['none', 'shift+g', 'move to bottom', 'tree', 'moveBottom'],
+    ]],
 
     //nav wintabs
-    ['docHeader', 'Nav wintabs'],
-    ['pointerByType', 'enter', 'focus / open', {
-      'win': 'focusWin',
-      'tab': 'focusTab',
-      'closedTab': 'openClosedTab',
-      'closedWin': 'openClosedWin',
-    }],
-    ['none', 'o', '(un)pin window', 'pin'],
-    ['none', '/', 'search', 'searchMode'],
-    ['none', 'escape', 'clear search', 'clearInput'],
-    ['none', "'", "goto tag", 'goMark'],
-    ['none', "m", "mark tag", 'mark'],
+    ['docHeader', 'Nav wintabs', [
+      ['pointerByType', 'enter', 'focus / open', 'tree', {
+        'win': 'focusWin',
+        'tab': 'focusTab',
+        'closedTab': 'openClosedTab',
+        'closedWin': 'openClosedWin',
+      }],
+      ['none', 'o', '(un)pin window', 'tree', 'pin'],
+      ['none', '/', 'search', 'tree', 'searchMode'],
+      ['none', 'escape', 'clear search', 'tree', 'clearInput'],
+      ['none', "'", "goto tag", 'tree', 'goMark'],
+      ['none', "m", "mark tag", 'tree', 'mark'],
+    ]],
 
 //manage wintabs
-    ['docHeader', 'Manage wintabs'],
-    ['none', 'x', 'select node', 'select'],
-    ['none', 'shift+x', 'mark tabs to end of win', 'markToEnd'],
-    ['pointerByType', 'p', 'Paste/move marked tabs',{
-      'tab': 'putAfterTab',
-      'win': 'putEndOfWin',
-    }],
-//    ['tab', 'p', '', 'putAfterTab'],
-//    ['win', 'p', '', 'putEndOfWin'],
-    ['none', 'P', 'marked tabs to new window', 'putNewWin'],
-    ['none', 'n', 'name window', 'nameWin'],
-    ['none', 'w s', 'mark Window to Save', 'toSave'],
-    ['none', 'w c', 'Close Window (keep node)', 'closeWin'],
-    ['none', 'w d', 'Window Delete (for closed)', 'deleteWin'],
+    ['docHeader', 'Manage wintabs', [
+      ['none', 'x', 'select node', 'tree', 'select'],
+      ['none', 'shift+x', 'mark tabs to end of win', 'tree', 'markToEnd'],
+      ['pointerByType', 'p', 'Paste/move marked tabs','tree', {
+        'tab': 'putAfterTab',
+        'win': 'putEndOfWin',
+      }],
+//      ['tab', 'p', '', 'putAfterTab'],
+//      ['win', 'p', '', 'putEndOfWin'],
+      ['none', 'P', 'marked tabs to new window', 'tree', 'putNewWin'],
+      ['none', 'n', 'name window', 'tree', 'nameWin'],
+      ['none', 'w s', 'mark Window to Save', 'tree', 'toSave'],
+      ['none', 'w c', 'Close Window (keep node)', 'tree', 'closeWin'],
+      ['none', 'w d', 'Window Delete (for closed)', 'tree', 'deleteWin'],
+    ]],
 
 //Freezing
-    ['docHeader', 'Manage wintabs'],
-    ['closed', 'F', 'Make Freezer (from closed)', 'makeFreezer'],
-    ['win', 'f b', 'Freeze to Bookmark', 'bmFreeze'],
-    ['key', 'f a', 'Freeze All non-pinned wins', 'freezeAll'],
-    ['tab', 'f f', 'Freeze calling tab', 'freezeTab'],
+    ['docHeader', 'Manage wintabs',[
+      ['closed', 'F', 'Make Freezer (from closed)', 'tree', 'makeFreezer'],
+      ['win', 'f b', 'Freeze to Bookmark', 'tree', 'bmFreeze'],
+      ['key', 'f a', 'Freeze All non-pinned wins', 'tree', 'freezeAll'],
+      ['tab', 'f f', 'Freeze calling tab', 'tree', 'freezeTab'],
+    ]],
 
 //Popup manage
-    ['docHeader', 'Manage popup'],
-    ['none', 'T', 'break point (for testing)', 'doBreakPoint'],
-    ['none', 'q', 'close TMI', 'closeTmi'],
-    ['none', 'r', 'Refresh', 'refreshTmi'],
+    ['docHeader', 'Manage popup', [
+      ['none', 'space', 'Show menu', 'app', 'showHelp'],
+      ['none', 'q', 'close TMI', 'app', 'closeTmi'],
+      ['none', 'r', 'Refresh', 'app', 'refreshTmi'],
+      ['none', 'T', 'break point (for testing)', 'app', 'doBreakPoint'],
+    ]],
 //    ^a, ^z
   ];
 
     app.keyOut={};
-    for (var keyRow of keyMap) {
-      if(keyRow[0] != 'docHeader' && keyRow[0] != 'doc'){
-        app.keyOut[keyRow[1]] = keyRow;
-      }
-    }
+    for (let keyGroup of app.keyMap) {
+        console.log(keyGroup)
+      for (let keyRow of keyGroup[2]) {
+        if(keyRow[0] != 'docHeader' && keyRow[0] != 'doc'){
+          app.keyOut[keyRow[1]] = keyRow;
+        };
+      };
+    };
   };
 
 

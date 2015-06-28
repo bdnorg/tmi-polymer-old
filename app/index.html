@@ -44,35 +44,34 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 <body unresolved class="fullbleed layout vertical">
   <template is="dom-bind" id="app">
-    <iron-a11y-keys id="keys"
-                    target="{{parentElement}}"
-                    keys="enter up down left right space j k h l f a b m"
-                    on-keys-pressed="keyHandler">
-    </iron-a11y-keys>
-
     <paper-drawer-panel id="paperDrawerPanel" forceNarrow>
-      <div drawer mode="waterfall">
-      <paper-header-panel mode="waterfall">
+      <paper-header-panel drawer mode="standard">
         <!-- Drawer Toolbar -->
+<!--
+        <div class="paper-header"> </div>
+-->
         <paper-toolbar id="drawerToolbar">
           <button tabindex="1" id="paperToggle" paper-drawer-toggle>
             <iron-icon icon="menu" paper-drawer-toggle></iron-icon>
           </button>
-          <span>Menu</span>
+          <span class="flex">Menu</span>
+          <div class="middle"></div>
         </paper-toolbar>
 
         <!-- Drawer Content -->
-          <template is="dom-repeat" items="{{keyMap}}" as="row">
-            <template is="dom-if" if="{{isEq(row.0, 'docHeader')}}">
-              <br><u>{{row.1}}</u>
-            </template>
-            <template is="dom-if" if="{{row.2}}">
-              <div>
-                &nbsp;<span><b>{{row.1}}</b></span> -
-                  <span>{{row.2}}</span>
-              </div>
+        <div class="flex">
+          <template is="dom-repeat" items="{{keyMap}}" as="group">
+            <br><u>{{group.1}}</u>
+            <template is="dom-repeat" items="{{group.2}}" as="row">
+              <template is="dom-if" if="{{row.2}}">
+                <div>
+                  &nbsp;<span><b>{{row.1}}</b></span> -
+                    <span>{{row.2}}</span>
+                </div>
+              </template>
             </template>
           </template>
+
           <paper-menu class="list" attr-for-selected="data-route" selected="{{route}}" on-iron-select="onMenuSelect">
               <a data-route="home" href="/">
                 <iron-icon icon="home"></iron-icon>
@@ -89,10 +88,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 <span>Contact</span>
               </a>
           </paper-menu>
+        </div>
       </paper-header-panel>
-      </div>
 
-      <paper-header-panel main mode="waterfall">
+      <paper-header-panel main mode="standard">
         <!-- Main Toolbar -->
         <paper-toolbar id="mainToolbar">
           <button tabindex="1" id="paperToggle" paper-drawer-toggle>
@@ -115,6 +114,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         </paper-toolbar>
 
         <!-- Main Content -->
+        <div class="fit">
           <iron-pages attr-for-selected="data-route" selected="{{route}}">
 
             <section data-route="home">
@@ -155,8 +155,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             </section>
 
           </iron-pages>
+          </div>
         </paper-header-panel>
     </paper-drawer-panel>
+
+    <iron-a11y-keys id="keys"
+                    target="{{parentElement}}"
+                    keys="enter up down left right space j k h l f a b m
+                    shift+h ?"
+                    on-keys-pressed="keyHandler">
+    </iron-a11y-keys>
 
     <paper-toast id="caching-complete"
                  duration="6000"
