@@ -10,15 +10,14 @@
 - menu: space toggles,
 - pointer: collapse from tab, wrap around, api to set, pointer is el
 --- commit
+- better pointer tests
 
-
---- 0 Todo
-- templates: change win to node
-- keys: data scructure, broken{? / ...}, wrappers, multikey sequences, different trees
-- menu: toolbar too big, FOUC, onclicks work,
-- pointer: initial pointer. point to collections
 
 --- Todo
+- keys: data scructure, broken{? / ...}, wrappers, multikey sequences, different trees
+- menu: toolbar too big, FOUC, onclicks work,
+- pointer: initial pointer. point to collections(pin, closed)
+
 - create pinned section
 - tmi-browser: make component, update from real tabs
 - styles: global, make pretty
@@ -30,5 +29,7 @@
 
 --- Issues
 - want deep selector: like to walk a tree
+  - or stamp more into element's light dom but still get polymer's binding goodness
 - querySelector doesn't work on id's beginning w/ number
 - want object observer: observing a path(e.g. user.manager) requires set
+- get parentElement across shadow boundaries.

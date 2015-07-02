@@ -24,7 +24,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   // have resolved and content has been stamped to the page
   app.addEventListener('dom-change', function() {
     console.log('Our app is ready to rock!');
-    app.tree = document.querySelector('#main-tree');
+    app.roott = document.querySelector('#main-tree');
+    window.roott = app.roott;
     app.loadKeyMap();
   });
 
@@ -66,7 +67,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     if (app.keyOut[key]) {
 //      app.keyClass[class][func]();
       if (keyClass == 'tree') {
-        app.tree[func]();
+        app.roott[func]();
       } else {
         app[func]();
       }

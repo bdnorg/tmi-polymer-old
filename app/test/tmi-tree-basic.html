@@ -80,6 +80,20 @@
         });
       });
 
+      test('Check node API', function(done) {
+        flush(function() {
+          //myQuery getNode getFirstEl getVisibleEls
+          assert.equal(el.myQuery('#id-565').id, 'id-565');
+          assert.equal(el.getNode('id-565').id, 'id-565');
+          assert.equal(el.getFirstEl().id, 'id-1103');
+          assert.equal(el.getVisibleEls().length, 6);
+//          el.right(); //TODO async
+//          assert.equal(el.getVisibleEls().length, 6);
+
+          done();
+        });
+      });
+
       test('Check pointer movement', function(done) {
         flush(function() {
           el.up();  //wraps around
@@ -88,35 +102,42 @@
           assert.equal(el.getPointer().id, 'id-1103');
           el.down();
           el.down();
-          el.right(); //need async test
+          el.right(); //TODO need async test
           el.up();
           assert.equal(el.getPointer().id, 'id-1');
           el.down();
           assert.equal(el.getPointer().id, 'id-565');
-
-//          assert.equal(el.myQuery('#id-595'), 'id-565');
-
-          done();
-/*
-          setTimeout(funciton(done){
+          setTimeout(function(){
+            el.down();
             el.down();
             el.down();
             assert.equal(el.getPointer().id, 'id-976');
+            assert.equal(el.getPointerWin().id, 'id-565');
+            assert.equal(el.getPointerIndex(el.getVisibleEls()), 5);
             el.left();
             assert.equal(el.getPointer().id, 'id-565');
             done();
-          }, 200);
-*/
+          }, 500);
+
         });
       });
 
       test('Check pointer API', function(done) {
         flush(function() {
+          assert.equal(el.getPointer().id, 'id-1103');
           el.setPointerId('id-883')
- //         assert.equal(el.getPointer().id, 'id-883');
- //         el.setPointer(el.getFirstEl)
- //         assert.equal(el.getPointer().id, 'id-1103');
-//          el.getPointerWin();
+          assert.equal(el.getPointer().id, 'id-883');
+          el.setPointer(el.getFirstEl())
+          assert.equal(el.getPointer().id, 'id-1103');
+
+/*
+          getPointerWin
+          setPointer
+          setPointerId
+          getPointer
+          getPointerIndex
+
+*/ 
 
           done();
         });

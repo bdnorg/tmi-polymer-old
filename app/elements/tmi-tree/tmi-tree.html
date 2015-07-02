@@ -7,6 +7,49 @@
   console.log("window.testWins: ", window.testWins);
 </script>
 
+<dom-module id="tmi-tab">
+  <style>
+    :host {display: block;}
+    :host([pointer]) {background-color: pink;}
+    .ind {margin-left: 1.5em;
+    .clip {white-space: nowrap; overflow: hidden;}
+    }
+  </style>
+  <template>
+    <div>
+      <input type="checkbox" name="tabCheck" value="{{tab.id}}">
+      <span>
+         <iron-icon icon="receipt"
+                    style="height: 16px; width: 16px;"></iron-icon>
+      </span>
+      <span>{{tab.title}}</span> - <span>{{tab.id}}</span>
+    </div>
+  </template>
+</dom-module>
+<script>
+  (function () {
+    Polymer({
+      is: "tmi-tab",
+      properties: {
+        tab: {
+          type: Object,
+        },
+        roott: {
+          type: Object,
+        },
+        winid: {
+          readOnly: true,
+          reflectToAttribute: true,
+          type: String,
+        },
+      },
+      getWinId: function(){
+        return this.tab.windowId;
+      }
+    });
+  })();
+</script>
+
 <dom-module id="tmi-win-display">
   <template>
     [<iron-icon icon="receipt"
@@ -77,16 +120,20 @@
         <tmi-win-display win="{{win.win}}"></tmi-win-display>
         - <span>{{win.id}}</span>
     </div></div>
+    <content></content>
 
+<!--
+-->
     <iron-collapse id="collapse" class="">
       <div class="collapse-content tabBlock ind clip">
         <template is="dom-repeat" items="{{win.win.tabs}}" as="tab">
           <tmi-tab tab="{{tab}}" id="{{makeId(tab.id)}}"
-                   ttree="{{ttree}}" winid="{{makeId(tab.windowId)}}"
+                   roott="{{roott}}" winid="{{makeId(tab.windowId)}}"
                    ttest="lk" class="node"></tmi-tab>
         </template>
       </div>
     </iron-collapse>
+
   </template>
 </dom-module>
 <script>
@@ -97,7 +144,7 @@
         win: {
           type: Object,
         },
-        ttree: {
+        roott: {
           type: Object,
         },
         pointer: {
@@ -105,60 +152,18 @@
           notify: true,
         }
       },
-      makeId: function(id){
-        return 'id-' + id;
+      ready: function() {
+        this.makeId = this.roott.makeId;
       },
 
 //      collapse: function(event, detail, sender) {
       toggle: function() {
-        if (this.ttree.getPointerWin().id == this.id) {
-          this.ttree.setPointerId(this.id);
+        if (this.roott.getPointerWin().id == this.id) {
+          this.roott.setPointerId(this.id);
         }
         this.$.collapse.toggle();
+//        this.querySelector('iron-collapse').toggle()
       },
-    });
-  })();
-</script>
-
-<dom-module id="tmi-tab">
-  <style>
-    :host {display: block;}
-    :host([pointer]) {background-color: pink;}
-    .ind {margin-left: 1.5em;
-    .clip {white-space: nowrap; overflow: hidden;}
-    }
-  </style>
-  <template>
-    <div>
-      <input type="checkbox" name="tabCheck" value="{{tab.id}}">
-      <span>
-         <iron-icon icon="receipt"
-                    style="height: 16px; width: 16px;"></iron-icon>
-      </span>
-      <span>{{tab.title}}</span>
-    </div>
-  </template>
-</dom-module>
-<script>
-  (function () {
-    Polymer({
-      is: "tmi-tab",
-      properties: {
-        tab: {
-          type: Object,
-        },
-        ttree: {
-          type: Object,
-        },
-        winid: {
-          readOnly: true,
-          reflectToAttribute: true,
-          type: String,
-        },
-      },
-      getWinId: function(){
-        return this.tab.windowId;
-      }
     });
   })();
 </script>
@@ -172,10 +177,14 @@
   <template>
     Tree
     <div class="ind">
+    <iron-collapse id="collapseGroup" class="" opened="true">
       <template is="dom-repeat" items="{{model}}" as="win">
-        <tmi-window win="[[win]]" id="[[win.id]]" class="node" ttree="{{ttree}}"
-                    pointer$="{{win.pointer}}"></tmi-window>
+        <tmi-window win="[[win]]" id="[[win.id]]" class="node" roott="{{roott}}"
+                    pointer$="{{win.pointer}}">
+
+        </tmi-window>
       </template>
+    </iron-collapse>
     </div>
   </template>
 </dom-module>
@@ -191,18 +200,11 @@
         },
         ready: function() {
           this.model = this.genTestTree();
-          this.ttree = this;
+          this.roott = this;
         },
 
         test: function(t){
           console.log(t)
-        },
-        getFirstEl: function(){
-          return this.myQuery('tmi-window');
-        },
-        getFirstElTxt: function(){
-//          return this.querySelector('tmi-window')
-          return document.querySelector('tmi-tree::shadow tmi-window::shadow tmi-win-display::shadow span').innerText;
         },
 
         // Tree helpers
@@ -216,13 +218,29 @@
           tree[0].pointer = true;
           return tree;
         },
-        myQuery: function(query){
-          return this.shadowRoot.querySelector('::shadow .iron-collapse-opened '
-                                                + query + ', ' + query);
-        },
         makeId: function(id){
           return 'id-' + id;
         },
+
+        //Nodes
+        myQuery: function(query){
+          var el = this.shadowRoot.querySelector('::shadow .iron-collapse-opened ' + query + ', ' + query);
+//          var el = this.shadowRoot.querySelector('.iron-collapse-opened >' + query);
+          return el;
+        },
+        getNode: function(id){
+          return this.myQuery('#' + id);
+        },
+        getFirstEl: function(){
+          return this.myQuery('tmi-window');
+        },
+        getVisibleEls: function(){
+//          return this.shadowRoot.querySelectorAll('.iron-collapse-opened > .collapse-content > .node, .iron-collapse-opened >.node');
+          return this.shadowRoot.querySelectorAll('.node, ::shadow .iron-collapse-opened .node')
+        },
+
+
+        //Pointer
         setPointer: function(el){
           var oldEl = this.getPointer();
           if (oldEl) {
@@ -250,18 +268,12 @@
           }
           return el;
         },
-        getVisibleEls: function(){
-          return this.shadowRoot.querySelectorAll('.node, ::shadow .iron-collapse-opened .node')
-        },
         getPointerIndex: function(elList){
           for (var i = 0; i < elList.length; i++) {
             if (elList[i].hasAttribute('pointer')){
               return i;
             }
           };
-        },
-        getNode: function(id){
-          return this.myQuery('#' + id);
         },
 
         //Tree movement
