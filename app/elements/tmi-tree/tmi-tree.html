@@ -115,10 +115,11 @@
         <iron-icon icon="expand-more"
                    style="height: 16px; width: 16px;"></iron-icon>
       </span>
-      <input type="checkbox" name="winCheck" value="{{win.id}}">
-      (<span>{{win.win.tabs.length}}</span>)
-        <tmi-win-display win="{{win.win}}"></tmi-win-display>
-        - <span>{{win.id}}</span>
+      <input type="checkbox" name="winCheck"
+             value="{{node.id}}">
+      (<span>{{win.tabs.length}}</span>)
+        <tmi-win-display win="{{win}}"></tmi-win-display>
+        - <span>{{node.id}}</span>
     </div></div>
     <content></content>
 
@@ -126,10 +127,11 @@
 -->
     <iron-collapse id="collapse" class="">
       <div class="collapse-content tabBlock ind clip">
-        <template is="dom-repeat" items="{{win.win.tabs}}" as="tab">
+        <template is="dom-repeat" items="{{win.tabs}}" as="tab">
           <tmi-tab tab="{{tab}}" id="{{makeId(tab.id)}}"
-                   roott="{{roott}}" winid="{{makeId(tab.windowId)}}"
-                   ttest="lk" class="node"></tmi-tab>
+                   winid$="{{makeId(tab.windowId)}}"
+                   roott="{{roott}}"
+                   class="node"></tmi-tab>
         </template>
       </div>
     </iron-collapse>
@@ -141,6 +143,9 @@
     Polymer({
       is: "tmi-window",
       properties: {
+        node: {
+          type: Object,
+        },
         win: {
           type: Object,
         },
@@ -178,48 +183,89 @@
     Tree
     <div class="ind">
     <iron-collapse id="collapseGroup" class="" opened="true">
-      <template is="dom-repeat" items="{{model}}" as="win">
-        <tmi-window win="[[win]]" id="[[win.id]]" class="node" roott="{{roott}}"
-                    pointer$="{{win.pointer}}">
+      <template is="dom-repeat" items="{{nodes}}" as="node">
+        <tmi-window node="{{node}}" id="{{node.id}}"
+                    win="{{node.win}}"
+                    class="node" roott="{{roott}}"
+                    pointer$="{{node.pointer}}">
 
         </tmi-window>
       </template>
     </iron-collapse>
     </div>
+    <tmi-browser id="browser"
+                 new-wins="{{newWins}}"></tmi-browser>
   </template>
 </dom-module>
   <script>
     (function () {
+      'use strict';
       Polymer({
         is: "tmi-tree",
         properties: {
-          wins:{
-            type: Array,
-            notify: true,
-          },
         },
+        observers: [
+          '_syncWins(newWins.*)'
+        ],
         ready: function() {
-          this.model = this.genTestTree();
           this.roott = this;
+          this._initData();
+//          this._syncWins(this.newWins);
+          this._useTestData();
         },
-
-        test: function(t){
-          console.log(t)
-        },
+        created: function() {},
+        attached: function() {},
 
         // Tree helpers
-        genTestTree: function(t){
-          this.wins = window.testWins;
-          var tree = [];
-          for (win of this.wins) {
-            tree.push({win: win, id: 'id-' + win.id})
-          }
-//          this.setPointer(this.getFirstEl());
-          tree[0].pointer = true;
-          return tree;
+        makeId: function(id){return 'id-' + id;},
+        // sync Nodes
+        _initData:function() {
+          this.nodes = [];
         },
-        makeId: function(id){
-          return 'id-' + id;
+        _useTestData:function() {
+          this.nodes = [
+            {id: 'id-1103', winId: 1103, win: {tabs: [1,2,3]}},
+            {id: 'id-1', winId: 1, win: {}},
+            {id: 'id-565', winId: 565, win: {}},
+            {id: 'id-678', winId: 678, win: {}},
+            {id: 'id-883', winId: 883, win: {}},
+//            {id: 'id-1061', winId: 1061, win: {}},
+          ];
+          this.$.browser.useTestData();
+        },
+        _syncWins: function(newWinsChange) {
+//          var fullRefresh = true;
+          console.log('sync newWins: ', newWinsChange)
+          console.log('sync this.newWins: ', this.newWins)
+          if (! this.nodes) {this.nodes = []}
+          var nodes = this.nodes;
+//          var nodes = this.nodes ? this.nodes : [];
+          var i = this.nodes.length;
+          while(i--) {   //reverse loop over this.nodes
+            var node = this.nodes[i];
+            if (this.newWins.hasOwnProperty(node.winId)) { //changed
+              if (this.newWins[node.winId]) { //not deleted
+                this.set('nodes.'+i+'.win',
+                         this.newWins[node.winId]);
+              } else { //deleted
+                //delete node
+                this.splice('nodes', i, 1);
+//                this.handleDeleteNode(node);
+              };
+              delete this.newWins[node.winId]
+//            } else {
+//              if (fullRefresh) { //delete because not in list}
+            };
+          };
+
+          // everything left is a new window
+          for (let key of Object.keys(this.newWins)) {
+            let win = this.newWins[key];
+//              this.wins[this.makeId(win.id)] = win;
+            if(win) {
+              this.push('nodes', {id: this.makeId(win.id), winId: win.id, win: win});
+            };
+          };
         },
 
         //Nodes
@@ -259,7 +305,12 @@
           };
         },
         getPointer: function(){
-          return this.myQuery('.node[pointer]');
+          var pointer = this.myQuery('.node[pointer]');
+          if (!pointer) {
+            pointer = this.getFirstEl()
+            pointer.setAttribute('pointer', '');
+          };
+          return pointer;
         },
         getPointerWin: function(){
           var el = this.getPointer();
@@ -274,6 +325,7 @@
               return i;
             }
           };
+          return 0;
         },
 
         //Tree movement
@@ -312,8 +364,6 @@
         mark: function(){},
 
         //manage wintabs
-        mark: function(){},
-        mark: function(){},
         putAfterTab: function(tab){},
         putEndOfWin: function(win){},
         putNew: function(){},
@@ -353,9 +403,25 @@
     Polymer({
       is: "tmi-browser",
       properties: {
-        wins: {
-          type: "object",
+        newWins: {
+          type: Object,
+          notify: true,
         },
+      },
+      ready: function() {
+      },
+      useTestData: function() {
+        this.wins = window.testWins;
+        this.set('newWins', _.indexBy(window.testWins, "id"));
+      },
+      testChange: function() {
+        var newNewWins = {};
+        newNewWins[999999] = {id: 999999,
+                              tabs: [{id:888888,
+                                      title: 'Added test tab'},
+                                     1,2,3]};
+        newNewWins[678] = false;
+        this.set('newWins', newNewWins);
       },
     });
   })();

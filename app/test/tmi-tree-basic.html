@@ -75,7 +75,8 @@
         flush(function() {
           var firstLine = document.querySelector('tmi-tree::shadow tmi-window::shadow tmi-win-display::shadow span').innerText;
           assert.equal(firstLine, "a - Google Search");
-//          assert.equal(el.getFirstEl(), "a - Google Search");
+          var firstEl = el.getFirstEl();
+          assert.equal(firstEl.innerText, "a - Google Search");
           done();
         });
       });
@@ -107,6 +108,7 @@
           assert.equal(el.getPointer().id, 'id-1');
           el.down();
           assert.equal(el.getPointer().id, 'id-565');
+          el.$.browser.testChange();
           setTimeout(function(){
             el.down();
             el.down();
@@ -116,8 +118,16 @@
             assert.equal(el.getPointerIndex(el.getVisibleEls()), 5);
             el.left();
             assert.equal(el.getPointer().id, 'id-565');
+            el.up();
+            el.up();
+            el.up();
+            assert.equal(el.getPointer().id, 'id-999999');
+            el.up();
+            el.up();
+            el.up();
+            assert.equal(el.getPointer().id, 'id-565');
             done();
-          }, 500);
+          }, 900);
 
         });
       });

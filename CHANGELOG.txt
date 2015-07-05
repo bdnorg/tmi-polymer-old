@@ -11,23 +11,29 @@
 - pointer: collapse from tab, wrap around, api to set, pointer is el
 --- commit
 - better pointer tests
+--- commit
+- initial tmi-browser and sync with wins
 
 
 --- Todo
+- create pinned section, get rid of ::shadow queries
++ tmi-browser: make component, update from real tabs
+- storage: data model, link stored to real, use bookmarks
+- search
 - keys: data scructure, broken{? / ...}, wrappers, multikey sequences, different trees
 - menu: toolbar too big, FOUC, onclicks work,
 - pointer: initial pointer. point to collections(pin, closed)
 
-- create pinned section
-- tmi-browser: make component, update from real tabs
 - styles: global, make pretty
 - dynamic docs
-- storage: data model, link stored to real, use bookmarks
-- search
 - labels
 - auto close
 
 --- Issues
+- why does this make nodes become undefined?
+    <template is="dom-repeat" items="{{nodes}}" as="node">
+
+- want observers.  this.set('coll.key.feild', value). key should be a variable,not a hardcoded string
 - want deep selector: like to walk a tree
   - or stamp more into element's light dom but still get polymer's binding goodness
 - querySelector doesn't work on id's beginning w/ number
