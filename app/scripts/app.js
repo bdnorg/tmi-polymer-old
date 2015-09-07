@@ -111,7 +111,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         'closedTab': 'openClosedTab',
         'closedWin': 'openClosedWin',
       }],
-      ['none', 'o', '(un)pin window', 'tree', 'pin'],
+      ['none', 'shift+o', '(un)pin window', 'tree', 'pin'],
       ['none', '/', 'search', 'tree', 'searchMode'],
       ['none', 'escape', 'clear search', 'tree', 'clearInput'],
       ['none', "'", "goto tag", 'tree', 'goMark'],

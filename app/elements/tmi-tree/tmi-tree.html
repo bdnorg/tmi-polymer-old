@@ -63,7 +63,7 @@
       is: "tmi-win-display",
       properties: {
         win: {
-          type: "object",
+          type: Object,
         },
       },
       ready: function() {
@@ -82,6 +82,24 @@
       <div class="clip {{ {pointer: win.id == pointer} | tokenList}}">
       </div>
 -->
+
+<dom-module id="tmi-node">
+  <template>
+    <span>{{mark}}</span>
+  </template>
+</dom-module>
+<script>
+  (function () {
+    Polymer({
+      is: "tmi-node",
+      properties: {
+      mark: {
+        type: String,
+      }
+      }
+    });
+  })();
+</script>
 
 <dom-module id="tmi-window">
   <style>
@@ -111,6 +129,7 @@
     <div class="clip {{ {pointer: win.id == pointer} | tokenList}}">
 -->
     <div class="clip"> <div id="pnode">
+      <span>{{mark}}</span>
       <span on-click="toggle">
         <iron-icon icon="expand-more"
                    style="height: 16px; width: 16px;"></iron-icon>
@@ -118,6 +137,7 @@
       <input type="checkbox" name="winCheck"
              value="{{node.id}}">
       (<span>{{win.tabs.length}}</span>)
+        <span>{{node.name}}</span>
         <tmi-win-display win="{{win}}"></tmi-win-display>
         - <span>{{node.id}}</span>
     </div></div>
@@ -155,7 +175,10 @@
         pointer: {
           type: Boolean,
           notify: true,
-        }
+        },
+        mark: {
+          type: String,
+        },
       },
       ready: function() {
         this.makeId = this.roott.makeId;
@@ -357,11 +380,38 @@
         //nav wintabs
 //        browser.focusWin: function(win){},
 //        browser.focusTab: function(tab){},
-        pin: function(){},
+        pin: function(){
+          var elList = this.getVisibleEls();
+          var i = this.getPointerIndex(elList);
+          var moved = this.nodes[i];
+          this.splice('nodes', i, 1);
+          this.unshift('nodes', moved);
+        },
         searchMode: function(){},
         clearInput: function(){},
-        goMark: function(){},
-        mark: function(){},
+        getNodeFromMark: function(mark){
+          var elList = this.getVisibleEls();
+          var i = elList.length;
+          while(i--) {   //reverse loop
+            var node = elList[i];
+            if (node.mark === mark) {
+              return node;
+            };
+          };
+          return null;
+        },
+        goMark: function(){
+//          var key = getOneKey();
+          var key = "z"
+          this.setPointer(getNodeFromMark(mark));
+        },
+        mark: function(){
+//          var key = getOneKey();
+          var key = "z"
+          var oldMarkNode = this.getNodeFromMark();
+          if (oldMarkNode){ oldMarkNode.mark = ''; };
+          this.getPointer().mark = key;
+        },
 
         //manage wintabs
         putAfterTab: function(tab){},

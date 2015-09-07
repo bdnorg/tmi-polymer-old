@@ -73,10 +73,11 @@
 
       test('Check first line', function(done) {
         flush(function() {
-          var firstLine = document.querySelector('tmi-tree::shadow tmi-window::shadow tmi-win-display::shadow span').innerText;
+//          var firstLine = document.querySelector('tmi-tree::shadow tmi-window::shadow tmi-win-display::shadow span').innerText;
+          var firstLine = document.querySelector('tmi-tree').shadowRoot.querySelector('tmi-window').shadowRoot.querySelector('tmi-win-display').shadowRoot.querySelector('span').innerText;
           assert.equal(firstLine, "a - Google Search");
           var firstEl = el.getFirstEl();
-          assert.equal(firstEl.innerText, "a - Google Search");
+          assert.equal(firstEl.id, "id-1103");
           done();
         });
       });
