@@ -163,7 +163,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       };
     };
   };
-
+ 
+  // Scroll page to top and expand header
+  app.scrollPageToTop = function() {
+    console.log('ran app.scrollPateToTop()')
+    //app.$.headerPanelMain.scrollToTop(true);
+  };
 
 })(document);
 
