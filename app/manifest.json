@@ -1,19 +1,94 @@
 {
-  "name": "Polymer Starter Kit",
-  "short_name": "Polymer Starter Kit",
-  "icons": [{
-        "src": "images/touch/icon-128x128.png",
-        "sizes": "128x128"
-      }, {
-        "src": "images/touch/apple-touch-icon.png",
-        "sizes": "152x152"
-      }, {
-        "src": "images/touch/ms-touch-icon-144x144-precomposed.png",
-        "sizes": "144x144"
-      }, {
-        "src": "images/touch/chrome-touch-icon-192x192.png",
-        "sizes": "192x192"
-      }],
-  "start_url": "/#!/",
-  "display": "standalone"
+  "name": "TMI-3: Tab Management Interface",
+  "version": "0.11.0",
+  "manifest_version": 2,
+  "description": "(testing) Save and manage windows and tabs.",
+//  "icons": { "16": "img/icon16.png",
+//             "48": "img/icon48.png",
+//             "128": "img/icon128.png" },
+  "browser_action": {
+//    "default_icon": "img/icon19.png",
+///    "default_icon": "img/TMI.icon10.png",
+    "default_title": "TMI-3: Tab Management Interface",
+    "default_popup": "index.html"
+  },
+//  "page_action": {
+//    "default_icon": "img/icon19.png",
+//    "default_title": "TMI: page action",
+//    "default_popup": "popup.html"
+//  },
+//  "content_security_policy": "script-src 'self' 'http://static.jstree.com'; object-src 'self'",
+//  "background": {
+//    "script": "lib/kendo.web.min.js"
+//  },
+//  "background": {
+//    "script": "lib/lawnchair.js"
+//  },
+//  "background": {
+//    "script": "lib/lawnchair-adapter-webkit-sqlite-0.6.1.js"
+//  },
+///  "background": {
+///    "script": "js/background.js"
+///  },
+//  "background": {
+//    "script": "js/popup.js"
+//  },
+///  "background": {
+///    "page": "background.html"
+///  },
+///  "options_page": "options.html",
+///  "web_accessible_resources": [
+///    "freezer.html",
+///    "freezer.js",
+///    "img/nav.png"
+///  ],
+  "permissions": [
+    "tabs",
+    "bookmarks",
+    "history",
+//    "http://*/*",
+//    "https://*/*" ,
+//    "file://*/*" ,
+    "<all_urls>",
+    "unlimitedStorage"
+  ],
+  "commands": {
+    "_execute_browser_action": {
+      "suggested_key": {
+        "default": "Alt+E"
+      }
+    },
+    "togglePopUp": {
+      "suggested_key": {
+        "default": "Alt+T"
+      },
+      "description": "Toggle PopUp"
+    }
+///    "newNewTab": {
+///      "suggested_key": {
+///        "default": "Alt+T"
+///      },
+///      "description": "New new tab"
+///    }
+  }
+//  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
+  // I think I can get rid of inject.js, which just handles alt-A
+///  "content_scripts": [
+//    {
+//      "matches": [ "http://*/*", "https://*/*", "file://*/*" ],
+//      "js": [ "js/inject.js" ],
+//      "run_at": "document_start",
+//      "all_frames": true
+//    },
+///    {
+///      "matches": [ "file:///?tmiFrozen*", "file:///Users/bnutter/opt/tmiFrozen.html*"],
+///      "js": [ "js/injectFreezer.js" ],
+///      "run_at": "document_end"
+///    }
+//    {
+//      "matches": [ "http://*/*", "https://*/*", "file://*/*" ],
+//      "js": [ "js/tmiInject.js" ],
+//      "run_at": "document_start"
+//    }
+///  ]
 }

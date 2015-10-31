@@ -232,6 +232,7 @@
         ],
         ready: function() {
           this.roott = this;
+          this.b = this.$.browser;
           this._initData();
 //          this._syncWins(this.newWins);
           this._useTestData();
@@ -247,17 +248,27 @@
         },
         _useTestData:function() {
           this.nodes = [
+/*
             {id: 'id-1103', winId: 1103, win: {tabs: [1,2,3]}},
             {id: 'id-1', winId: 1, win: {}},
             {id: 'id-565', winId: 565, win: {}},
             {id: 'id-678', winId: 678, win: {}},
             {id: 'id-883', winId: 883, win: {}},
-//            {id: 'id-1061', winId: 1061, win: {}},
+//            {id: 'id-1061'},
+*/
+            {id: 'id-1103', winId: 1103, hash: 1, state: 'save'},
+            {id: 'id-1', winId: 1, hash: 2},
+            {id: 'id-565', winId: 565, hash: 3},
+            {id: 'id-678', winId: 678, hash: 4},
+            {id: 'id-883', winId: 883, hash: 5},
+            {id: 'id-6666', winId: 6666, hash: 6666},  //should get deleted
+//            {id: 'id-1061'},
           ];
           this.$.browser.useTestData();
         },
         _syncWins: function(newWinsChange) {
 //          var fullRefresh = true;
+//TODO    check session id hasn't changed (and can't trust winIds)
           console.log('sync newWins: ', newWinsChange)
           console.log('sync this.newWins: ', this.newWins)
           if (! this.nodes) {this.nodes = []}
@@ -270,10 +281,12 @@
               if (this.newWins[node.winId]) { //not deleted
                 this.set('nodes.'+i+'.win',
                          this.newWins[node.winId]);
+//              this.storeWindow();
               } else { //deleted
                 //delete node
                 this.splice('nodes', i, 1);
 //                this.handleDeleteNode(node);
+//              this.storeWindow();
               };
               delete this.newWins[node.winId]
 //            } else {
@@ -287,8 +300,12 @@
 //              this.wins[this.makeId(win.id)] = win;
             if(win) {
               this.push('nodes', {id: this.makeId(win.id), winId: win.id, win: win});
+//              this.storeWindow();
+            } else {
+              console.log("This shouldn't happen (failed to delete win): ", key);
             };
           };
+//          this.storeWinOrder();
         },
 
         //Nodes
@@ -459,18 +476,25 @@
         },
       },
       ready: function() {
+        this.testWinId = 1103;
       },
       useTestData: function() {
         this.wins = window.testWins;
         this.set('newWins', _.indexBy(window.testWins, "id"));
       },
+      updateWins: function() {
+        chrome.windows.getAll({populate: true}, function(newWins) {
+          this.set('newWins', _.indexBy(newWins, "id"));
+        });
+      },
       testChange: function() {
         var newNewWins = {};
-        newNewWins[999999] = {id: 999999,
-                              tabs: [{id:888888,
+        newNewWins[this.testWinId] = false;
+        this.testWinId = this.testWinId + 10;
+        newNewWins[this.testWinId] = {id: this.testWinId,
+                              tabs: [{id: this.testWinId + 1,
                                       title: 'Added test tab'},
                                      1,2,3]};
-        newNewWins[678] = false;
         this.set('newWins', newNewWins);
       },
     });
