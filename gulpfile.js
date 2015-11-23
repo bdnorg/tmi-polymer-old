@@ -23,6 +23,8 @@ var glob = require('glob');
 var historyApiFallback = require('connect-history-api-fallback');
 var packageJson = require('./package.json');
 var crypto = require('crypto');
+//BDN
+var crisper = require('gulp-crisper');
 
 var AUTOPREFIXER_BROWSERS = [
   'ie >= 10',
@@ -68,13 +70,12 @@ var imageOptimizeTask = function (src, dest) {
 
 var optimizeHtmlTask = function (src, dest) {
   var assets = $.useref.assets({searchPath: ['.tmp', 'app', 'dist']});
-
   return gulp.src(src)
     // Replace path for vulcanized assets
     .pipe($.if('*.html', $.replace('elements/elements.html', 'elements/elements.vulcanized.html')))
     .pipe(assets)
     // Concatenate and minify JavaScript
-    .pipe($.if('*.js', $.uglify({preserveComments: 'some'})))
+//BDN    .pipe($.if('*.js', $.uglify({preserveComments: 'some'})))
     // Concatenate and minify styles
     // In case you are still using useref build blocks
     .pipe($.if('*.css', $.cssmin()))
@@ -173,8 +174,20 @@ gulp.task('vulcanize', function () {
     .pipe($.vulcanize({
       stripComments: true,
       inlineCss: true,
-      inlineScripts: true
+//BDN      inlineScripts: true
+      // BDN
+      abspath: '',
+      excludes: [],
+      stripExcludes: false,
+      inlineScripts: false
+      // end BDN
     }))
+    //BDN
+    .pipe(crisper({
+      scriptInHead: true,
+      onlySplit: false
+    }))
+    // end BDN
     .pipe(gulp.dest(DEST_DIR))
     .pipe($.size({title: 'vulcanize'}));
 });
@@ -278,7 +291,8 @@ gulp.task('default', ['clean'], function (cb) {
   runSequence(
     ['copy', 'styles'],
     'elements',
-    ['jshint', 'images', 'fonts', 'html'],
+//BDN    ['jshint', 'images', 'fonts', 'html'],
+    ['images', 'fonts', 'html'],
     'vulcanize', // 'cache-config',
     cb);
 });
