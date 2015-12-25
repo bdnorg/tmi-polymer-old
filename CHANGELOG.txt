@@ -15,20 +15,30 @@
 - initial tmi-browser and sync with wins
 --- commit
 - implemented pin window (shift-o)
+- update SDK and merge
+--- commit
+- fiddled with gulpfile.js to work as extension (needs work): 
+  - added crisper, removed uglify and minify.
+- removed routing (was broken in extension)
+- style is broken
+--- commit
 
 
 --- Todo
+- remove /deep/
 + tmi-browser component: update from real tabs
 - storage: data model, link stored to real, use bookmarks
 - mark: fix singlequote key event, implement getOneKey()
 - name: get input working
 - search: filter
 - create pinned section, get rid of ::shadow queries
-- keys: data scructure, broken{? / ...}, wrappers, multikey sequences, different trees
+- keys: data scructure, broken{? / ...}, wrappers, multikey sequences, different trees, make help/keys an element
 - menu: toolbar too big, FOUC, onclicks work,
 - pointer: initial pointer. point to collections(pin, closed)
 
-- styles: global, make pretty
+- styles: global, make pretty, fix in gulp->extension
+- gulp: clean up, minify, uglify, 
+- extension: clean manifest.
 - dynamic docs
 - labels
 - auto close

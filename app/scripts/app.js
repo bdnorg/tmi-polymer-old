@@ -52,36 +52,37 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   };
 
   app.getKeyStr = function(detail) {
-    var shift = (detail.keyboardEvent.shiftKey ? "shift+" : "") ;
-    var ctrl = (detail.keyboardEvent.ctrlKey ? "ctrl+" : "") ;
-    var alt = (detail.keyboardEvent.altKey ? "alt+" : "") ;
+    var shift = (detail.keyboardEvent.shiftKey ? 'shift+' : '') ;
+    var ctrl = (detail.keyboardEvent.ctrlKey ? 'ctrl+' : '') ;
+    var alt = (detail.keyboardEvent.altKey ? 'alt+' : '') ;
     return shift + ctrl + alt + detail.key ;
   };
 
   app.keyHandler = function(e, detail, sender) {
+    console.log(sender);
     var key = app.getKeyStr(detail);
-    console.log("key: ", key, app.keyOut[key], e);
+    console.log('key: ', key, app.keyOut[key], e);
     if (! app.keyOut[key]) { return; }
     var keyClass = app.keyOut[key][3];
     var func = app.keyOut[key][4];
     if (app.keyOut[key]) {
 //      app.keyClass[class][func]();
-      if (keyClass == 'tree') {
+      if (keyClass === 'tree') {
         app.roott[func]();
       } else {
         app[func]();
       }
-    };
+    }
 // ?: document.querySelector('paper-drawer-panel').togglePanel()
   };
 
   app.showHelp = function(){
-   document.querySelector('paper-drawer-panel').togglePanel()
-  }
+   document.querySelector('paper-drawer-panel').togglePanel();
+  };
 
   app.isEq = function(arg1, arg2){
     return arg1 === arg2;
-  }
+  };
 
   app.loadKeyMap = function(){
 // * Keys: [args, keys, desc, keyClass, func]
@@ -114,8 +115,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       ['none', 'shift+o', '(un)pin window', 'tree', 'pin'],
       ['none', '/', 'search', 'tree', 'searchMode'],
       ['none', 'escape', 'clear search', 'tree', 'clearInput'],
-      ['none', "'", "goto tag", 'tree', 'goMark'],
-      ['none', "m", "mark tag", 'tree', 'mark'],
+      ['none', '\'', 'goto tag', 'tree', 'goMark'],
+      ['none', 'm', 'mark tag', 'tree', 'mark'],
     ]],
 
 //manage wintabs
@@ -154,19 +155,22 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   ];
 
     app.keyOut={};
-    for (let keyGroup of app.keyMap) {
-        console.log(keyGroup)
-      for (let keyRow of keyGroup[2]) {
-        if(keyRow[0] != 'docHeader' && keyRow[0] != 'doc'){
+//    for (let keyGroup of app.keyMap) {
+    for (var i = 0; i < app.keyMap.length; i++) {
+      var groupKeys = app.keyMap[i][2];
+//      for (let keyRow of keyGroup[2]) {
+      for (var j = 0; j < groupKeys.length; j++) {
+        var keyRow = groupKeys[j];
+        if(keyRow[0] !== 'docHeader' && keyRow[0] !== 'doc'){
           app.keyOut[keyRow[1]] = keyRow;
-        };
-      };
-    };
+        }
+      }
+    }
   };
  
   // Scroll page to top and expand header
   app.scrollPageToTop = function() {
-    console.log('ran app.scrollPateToTop()')
+    console.log('ran app.scrollPateToTop()');
     //app.$.headerPanelMain.scrollToTop(true);
   };
 

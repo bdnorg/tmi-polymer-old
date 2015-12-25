@@ -1,12 +1,5 @@
 <link rel="stylesheet" href="tmi-tree.css">
 
-
-<!-- chrome.windows.getAll() data in window.testWins -->
-<script src="../../test/chrome.windows.test.data.js"></script>
-<script>
-  console.log("window.testWins: ", window.testWins);
-</script>
-
 <dom-module id="tmi-tab">
   <style>
     :host {display: block;}
@@ -29,7 +22,7 @@
 <script>
   (function () {
     Polymer({
-      is: "tmi-tab",
+      is: 'tmi-tab',
       properties: {
         tab: {
           type: Object,
@@ -60,7 +53,7 @@
 <script>
   (function () {
     Polymer({
-      is: "tmi-win-display",
+      is: 'tmi-win-display',
       properties: {
         win: {
           type: Object,
@@ -91,7 +84,7 @@
 <script>
   (function () {
     Polymer({
-      is: "tmi-node",
+      is: 'tmi-node',
       properties: {
       mark: {
         type: String,
@@ -161,7 +154,7 @@
 <script>
   (function () {
     Polymer({
-      is: "tmi-window",
+      is: 'tmi-window',
       properties: {
         node: {
           type: Object,
@@ -186,7 +179,7 @@
 
 //      collapse: function(event, detail, sender) {
       toggle: function() {
-        if (this.roott.getPointerWin().id == this.id) {
+        if (this.roott.getPointerWin().id === this.id) {
           this.roott.setPointerId(this.id);
         }
         this.$.collapse.toggle();
@@ -224,7 +217,7 @@
     (function () {
       'use strict';
       Polymer({
-        is: "tmi-tree",
+        is: 'tmi-tree',
         properties: {
         },
         observers: [
@@ -269,10 +262,10 @@
         _syncWins: function(newWinsChange) {
 //          var fullRefresh = true;
 //TODO    check session id hasn't changed (and can't trust winIds)
-          console.log('sync newWins: ', newWinsChange)
-          console.log('sync this.newWins: ', this.newWins)
-          if (! this.nodes) {this.nodes = []}
-          var nodes = this.nodes;
+          console.log('sync newWins: ', newWinsChange);
+          console.log('sync this.newWins: ', this.newWins);
+          if (! this.nodes) {this.nodes = []; }
+//          var nodes = this.nodes;
 //          var nodes = this.nodes ? this.nodes : [];
           var i = this.nodes.length;
           while(i--) {   //reverse loop over this.nodes
@@ -287,24 +280,27 @@
                 this.splice('nodes', i, 1);
 //                this.handleDeleteNode(node);
 //              this.storeWindow();
-              };
-              delete this.newWins[node.winId]
+              }
+              delete this.newWins[node.winId];
 //            } else {
 //              if (fullRefresh) { //delete because not in list}
-            };
-          };
+            }
+          }
 
           // everything left is a new window
-          for (let key of Object.keys(this.newWins)) {
-            let win = this.newWins[key];
+          var keys = Object.keys(this.newWins);
+//          for (let key of keys)) {
+          for (var j = 0; j < keys.length; j++) {
+            var key = keys[j];
+            var win = this.newWins[key];
 //              this.wins[this.makeId(win.id)] = win;
             if(win) {
               this.push('nodes', {id: this.makeId(win.id), winId: win.id, win: win});
 //              this.storeWindow();
             } else {
-              console.log("This shouldn't happen (failed to delete win): ", key);
-            };
-          };
+              console.log('This should not happen (failed to delete win): ', key);
+            }
+          }
 //          this.storeWinOrder();
         },
 
@@ -322,7 +318,7 @@
         },
         getVisibleEls: function(){
 //          return this.shadowRoot.querySelectorAll('.iron-collapse-opened > .collapse-content > .node, .iron-collapse-opened >.node');
-          return this.shadowRoot.querySelectorAll('.node, ::shadow .iron-collapse-opened .node')
+          return this.shadowRoot.querySelectorAll('.node, ::shadow .iron-collapse-opened .node');
         },
 
 
@@ -342,19 +338,19 @@
           var newEl = this.getNode(id);
           if (newEl) {
             this.setPointer(newEl);
-          };
+          }
         },
         getPointer: function(){
           var pointer = this.myQuery('.node[pointer]');
           if (!pointer) {
-            pointer = this.getFirstEl()
+            pointer = this.getFirstEl();
             pointer.setAttribute('pointer', '');
-          };
+          }
           return pointer;
         },
         getPointerWin: function(){
           var el = this.getPointer();
-          if (el.tagName == 'TMI-TAB'){
+          if (el.tagName === 'TMI-TAB'){
             return this.getNode(this.makeId(el.getWinId()));
           }
           return el;
@@ -364,7 +360,7 @@
             if (elList[i].hasAttribute('pointer')){
               return i;
             }
-          };
+          }
           return 0;
         },
 
@@ -413,26 +409,26 @@
             var node = elList[i];
             if (node.mark === mark) {
               return node;
-            };
-          };
+            }
+          }
           return null;
         },
         goMark: function(){
 //          var key = getOneKey();
-          var key = "z"
-          this.setPointer(getNodeFromMark(mark));
+//          var key = 'z';
+//          this.setPointer(getNodeFromMark(mark));
         },
         mark: function(){
 //          var key = getOneKey();
-          var key = "z"
+          var key = 'z';
           var oldMarkNode = this.getNodeFromMark();
-          if (oldMarkNode){ oldMarkNode.mark = ''; };
+          if (oldMarkNode){ oldMarkNode.mark = ''; }
           this.getPointer().mark = key;
         },
 
         //manage wintabs
-        putAfterTab: function(tab){},
-        putEndOfWin: function(win){},
+//        putAfterTab: function(tab){},
+//        putEndOfWin: function(win){},
         putNew: function(){},
         name: function(){},
         toSave: function(){},
@@ -440,7 +436,7 @@
 //        delete: function(){},
 
         //Freezing
-        makeFreezer: function(closed){},
+//        makeFreezer: function(closed){},
 //        browser.bmFreeze: function(win){},
 //        browser.freezeAll: function(key){},
 //        browser.freezeTab: function(tab){},
@@ -468,7 +464,7 @@
 <script>
   (function () {
     Polymer({
-      is: "tmi-browser",
+      is: 'tmi-browser',
       properties: {
         newWins: {
           type: Object,
@@ -480,12 +476,12 @@
       },
       useTestData: function() {
         this.wins = window.testWins;
-        this.set('newWins', _.indexBy(window.testWins, "id"));
+        this.set('newWins', _.indexBy(window.testWins, 'id'));
       },
       updateWins: function() {
-        chrome.windows.getAll({populate: true}, function(newWins) {
-          this.set('newWins', _.indexBy(newWins, "id"));
-        });
+//        chrome.windows.getAll({populate: true}, function(newWins) {
+//          this.set('newWins', _.indexBy(newWins, 'id'));
+//        });
       },
       testChange: function() {
         var newNewWins = {};
