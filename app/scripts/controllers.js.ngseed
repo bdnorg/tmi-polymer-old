@@ -1,0 +1,625 @@
+'use strict';
+
+/* Controllers */
+
+angular.module('myApp.controllers', ['ui.bootstrap', 'ui.tree', 'cfp.hotkeys'])
+//angular.module('myApp.controllers', ['ui.tree'])
+  .controller('MyCtrl1', ['$scope', 'hotkeys', 'testData', '$q', function($scope, hotkeys, testData, $q, $localStorage) {
+
+    window.tscope = $scope;
+    var s = $scope;
+    var testingEnv = function() {
+      var s = $scope;
+      var r = getNode('root');
+      var w = getNode('winRoot');
+      var p = getNode('pinRoot');
+      $scope.test();
+      console.log('s = $scope; r = getNode(\'root\'); w = getNode(\'winRoot\'); p = getNode(\'pinRoot\');');
+      debugger;
+    };
+
+    var init = function(){
+      chrome.windows.getCurrent({populate: true}, function(currentWindow) {
+        window.tmi = {};
+        window.tmi.popupId = currentWindow.id;
+      });
+      //populate $scope with data from testData
+      var initScope = testData.initScope();
+      for(var i in initScope){
+        $scope[i] = initScope[i];
+      }
+      testData.initLoad($scope.root).then(function(ignore){
+        updateLinks();
+//        loadChildren();
+//        $scope.renderCount = 0;
+        $scope.pointer = getNode('root').getNextVis();
+        $scope.$watch('searchStr', function(str){ $scope.searchFilter(str); });
+
+        window.updateCaller = function (tab) {
+          $scope.$apply(function(){
+            $scope.callingWin = $scope.root.byId[tab.windowId];
+            $scope.callingTab = $scope.root.byId[tab.id];
+            if(!$scope.callingWin.collapsed && $scope.callingTab.visible){
+              $scope.setPointer($scope.callingTab);
+            } else {
+              $scope.setPointer($scope.callingWin);
+            }
+          });
+        };
+
+        testData.tabCountObservers.push(function(out){
+          $scope.tabCount = out.count;
+          $scope.frozenCount = out.frozen;
+          $scope.tabNodes = out.tabNodes;
+          console.log('tabNodes: ', out.tabNodes);
+          $scope.apply();
+        });
+
+        $scope.marks = { p: getNode('pinRoot'), w: getNode('winRoot'), c: getNode('cellarRoot') };
+        Mousetrap.bindGlobal('escape', function(e) {
+          document.getElementById('tinput').blur();
+          e.preventDefault();
+        });
+        Mousetrap.bindWildcard('b', function(key, e, combo) {
+          console.log('wildcard:: ', 'combo: ', combo, 'key: ',key);
+        });
+        Mousetrap.bindWildcard('\'', function(key, e, combo) {
+          $scope.setPointer(markToNode(key));
+          $scope.$apply();
+        });
+        Mousetrap.bindWildcard('m', function(key, e, combo) {
+          //TODO check range of keys
+          clearMark(key);
+          $scope.pointer.mark = key;
+          $scope.$apply();
+        });
+        Mousetrap.bindWildcard('g', function(key, e, combo) {
+          var pointerWin = $scope.getPointerWin();
+          pointerWin.moveToParent(getRootNode(markToNode(key)));
+          updateLinks();
+          $scope.$apply();
+        });
+
+      });
+    };
+    $scope.bg = chrome.extension.getBackgroundPage();
+//    $scope.currentTab = $scope.bg.recentTabs.list['head'].nextNode;
+    $scope.changedWins = {};
+    $scope.textMode = 'isearch';  // or 'nameWin', 'search'(?)
+
+    $scope.shortcuts=[
+      ['T', 'break point for testing', function(){ 
+        testingEnv();
+      }],
+      ['q', 'close TMI', function(){ 
+        window.close();
+      }],
+      ['j', 'move down', function(){ 
+        //$scope.pointer = $scope.pointer.getNextVis();
+        $scope.pointer = $scope.getPointer().getNextVis();
+        scrollBottom($scope.pointer.id);
+      }],
+      ['shift+j', 'move down 10', function(){ 
+        for (var i = 0; i < 10; i++) {
+          if ($scope.pointer.getNextVis().id === 'root') { break; }
+          $scope.pointer = $scope.pointer.getNextVis();
+          scrollBottom($scope.pointer.id);
+        }
+      }],
+      ['k', 'move up', function(){ 
+        $scope.pointer = $scope.pointer.getPrevVis();
+        scrollTop($scope.pointer.id);
+      }],
+      ['shift+k', 'move up 10', function(){ 
+        for (var i = 0; i < 10; i++) {
+          if ($scope.pointer.getPrevVis().id === 'root') { break; }
+          $scope.pointer = $scope.pointer.getPrevVis();
+          scrollTop($scope.pointer.id);
+        }
+      }],
+      ['h', 'left: collapse', function(){$scope.toggleWindowNode($scope.pointer);} ],
+      ['l', 'right: expand', function(){$scope.toggleWindowNode($scope.pointer);} ],
+      ['1 shift+g', 'move to top', function(){ 
+        $scope.pointer = getNode('pinRoot').getNextVis();
+        scrollTop($scope.pointer.id);
+      }],
+      ['shift+g', 'move to bottome', function(){ 
+        $scope.pointer = getNode('root').getPrevVis();
+        scrollTop($scope.pointer.id);
+      }],
+      ['x', 'mark node', function(){ 
+        $scope.pointer.checked = ! $scope.pointer.checked;
+      }],
+      ['shift+x', 'mark tabs to end of win', function(){ 
+        var node = $scope.pointer;
+        if (node.istab){
+          var sibs = node.getSibs();
+          for (var i = node.getIndex(); i<sibs.length; i++){
+            var sibnode = sibs[i];
+            sibnode.checked = ! sibnode.checked;
+          }
+        }
+      }],
+      ['p', 'Paste/move marked tabs', function(){ 
+        testData.moveMarkedToWin(getNode('root'), $scope.pointer);
+      }],
+      ['P', 'move marked tabs to new window', function(){ 
+        testData.moveMarkedToNewWin(getNode('root'));
+      }],
+      ['/', 'search', function(event){ 
+        event.preventDefault();
+        document.getElementById('tinput').focus();
+      }],
+      ['return', 'focus window / open Closed', function(event){ 
+        event.preventDefault();
+        $scope.focusPointer();
+      }],
+      ['r', 'Refresh', function(){ 
+        init();
+      }],
+      ['w s', 'mark Window to Save', function(){ 
+        var pointerWin = $scope.getPointerWin();
+        pointerWin.save = true;
+//        $scope.changedWins[pointerWin.win.id] = true;
+        updateWins(pointerWin.win.id);
+      }],
+      ['w c', 'Close Window (keep node)', function(){
+        var node = $scope.getPointerWin();
+        $scope.bg.focusOpenWindow(node.win.id);
+        var node = $scope.getPointerWin();
+        node.save = true;
+        node.closed = true;
+        testData.genWinNodesQ([node.win.id], $scope.winRoot).then(function(ignore){
+          delete node.byId[node.win.id];  //no link from winId, just id
+          //savemeta.
+          //add to node.delete?
+          chrome.windows.remove(node.win.id, function(){ });
+          updateLinks();
+        });
+      }],
+      ['w d', 'Window Delete (for closed node)', function(){
+        var node = $scope.getPointerWin();
+        //TODO: first close window
+        node.delete();
+        updateLinks();
+        $scope.pointer = getNode('winRoot').getNextVis(); //should do in callback
+      }],
+      ['n', 'name window', function(event){
+        event.preventDefault();
+        $scope.focusInputStr = true;
+      }],
+      ['f a', 'Freeze All non-pinned wins', function(){ 
+        $scope.bg.freezeAllWindows(function(){
+          window.focus();
+          $scope.$apply();
+        });
+      }],
+      ['f f', 'Freeze calling tab', function(){ 
+//        var node = $scope.pointer
+        var node = $scope.callingTab;
+        if (node.closed) {
+          console.log('can not freeze closed node');
+        } else if (node.istab){
+          $scope.bg.freezeTab(node.tab.id, null);
+        } else { //node is open win
+          //$scope.bg.freezeWindow(node.win.id, null)
+        }
+
+      }],
+      ['o', '(un)pin window', function(){ 
+        var pointerWin = $scope.getPointerWin();
+        var i = pointerWin.getIndex();
+        if (i > 0) {
+          pointerWin.moveToTop();
+        } else {
+          if (pointerWin.getParent().id === 'winRoot'){
+            pointerWin.moveToParent(getNode('pinRoot'));
+          } else {
+            pointerWin.moveToParent(getNode('winRoot'));
+          }
+          scrollTop($scope.pointer.id);
+        }
+        updateLinks();
+      }],
+    ];
+    for(var i in $scope.shortcuts){
+      var sc = $scope.shortcuts[i];
+      hotkeys.add(sc[0], sc[1], sc[2]);
+    }
+
+/*
+    Mousetrap.stopCallback = function(e, element, combo) {
+      console.log('hotkey: ', combo);
+      return false;
+    };
+*/
+
+
+/*
+    $scope.winFocus = 0;
+    window.addEventListener('focus', function(event) { 
+      $scope.winFocus++;
+    });
+*/
+    /*
+    $scope.$watch(
+      function(){ return $scope.bg.recentTabs.list['head'].nextNode; },
+      function(str) { $scope.currentTab = $scope.bg.recentTabs.list['head'].nextNode;}
+    );
+    */
+
+    var loadChildren = function(){
+      //Should be faster for initial render, but isn't.
+      testData.visitDfs(getNode('root'), function(node){
+        if(node.unloaded){
+          node.unloaded = false;
+          node.children = node.childrenUnloaded;
+          delete(node.childrenUnloaded);
+        }
+      });
+    };
+    $scope.removeNode = function(node) {
+      console.log(node);
+      //scope.remove();
+    };
+
+    $scope.clickNode = function(node){
+      console.log(node);
+      $scope.setPointer(node);
+    };
+    $scope.info = {test: 'info'};
+    $scope.treeOptions = {
+      accept: function(sourceNodeScope, destNodesScope, destIndex) {
+        return true;
+      },
+      dragStop: function(event) {
+        return false;
+      },
+      dropped: function(event) {
+        console.log(event);
+        console.log('index: ', event.dest.index);
+        console.log('target winId: ', event.dest.nodesScope.$parent.$parent.node.id);
+        return false;
+      },
+    };
+    var log = function(msg){
+      $scope.message = msg;
+    };
+    var scrollTop = function(id) {
+      var el = document.getElementById(id);
+      if (! el) { return; }
+      var rect = el.getBoundingClientRect();
+      window.scrollTo(0, rect.top + window.pageYOffset - window.innerHeight/2);
+//      window.scrollTo(0, window.pageYOffset + rect.top - 200);
+//      console.log('id: ', id, 'top: ', rect.top, 'pageYOffset: ', window.pageYOffset);
+    };
+    var scrollBottom = function(id) {
+      var rect = document.getElementById(id).getBoundingClientRect();
+//      window.scrollTo(0, rect.top + window.pageYOffset - window.innerHeight + 100)
+      window.scrollTo(0, rect.top + window.pageYOffset - window.innerHeight/2);
+    };
+
+/*
+    $scope.focus = function(node) {
+      if ($scope.pointer.closed) {
+        console.log('can not focus closed wins');
+      } else if (node.istab){
+        $scope.bg.selectOpenTab(node.tab.windowId, node.tab.id);
+      } else { //node is open win
+        $scope.bg.focusOpenWindow(node.win.id);
+      }
+    };
+*/
+
+//    $scope.focusSearchStr = false;
+
+    $scope.toggleWindowNode = function(node) {
+//        var targetNodeId = null;
+        if(node.istab){
+          var tabId = node.id;
+          node = $scope.setPointer(node.parent);
+          node.lastPointerTabId = tabId;
+        }
+        node.collapsed = ! node.collapsed;
+        if(!node.collapsed && node.lastPointerTabId) {
+          $scope.setPointerId(node.lastPointerTabId);
+        }
+        updateLinks();
+    };
+
+//    var getNodesScope = function(id) {
+//      return angular.element(document.getElementById(id)).scope();
+//    };
+
+    var getRootNodesScope = function() {
+      return getNodesScope('tmi-root');
+    };
+
+    $scope.collapseAll = function() {
+      var scope = getRootNodesScope();
+      scope.collapseAll();
+    };
+
+    $scope.expandAll = function() {
+      var scope = getRootNodesScope();
+      scope.expandAll();
+    };
+    $scope.checkCollapse = function() {
+      console.log($scope);
+    };
+    $scope.doLog = function(obj) {
+      console.log(obj);
+    };
+
+    $scope.imgError = function(scope) {
+      console.log(scope);
+    };
+    $scope.doExtensionReload = function($event){
+      $event.preventDefault();
+      chrome.runtime.reload();
+    };
+    $scope.focusPointer = function(){
+        var node = $scope.pointer;
+        if (node.closed) {
+          testData.openClosedWin( $scope.getPointerWin() );
+        } else {
+          if (node.istab) {
+            $scope.bg.selectOpenTabId(node.tab.id);
+          } else {
+            var node = $scope.getPointerWin();
+            $scope.bg.focusOpenWindow(node.win.id);
+          }
+        }
+    };
+    $scope.searchReturn = function(){
+      console.log('searchReturn');
+      $scope.focusPointer();
+//      $scope.searchStr = '';
+//      document.getElementById('tinput').blur();
+//      $scope.searchReset();
+    };
+    $scope.doInput = function(){
+      $scope.pointer.display = $scope.inputStr;
+      $scope.pointer.save = true;
+      //doSave($scope.pointer);
+      $scope.inputStr = '';
+      $scope.focusInputStr = false;
+    };
+    $scope.searchFilter = function(searchStr){
+      if (!searchStr) {
+        // maybe also collapse all or restore state. (same as double esc)
+        // or blur focus
+//        return '';
+        $scope.searchStr = '';
+        document.getElementById('tinput').blur();
+        $scope.searchReset();
+        return '';
+      }
+      $scope.searchCount = 0;
+      testData.visitDfs(getNode('root'), function(node) {
+        if (node.type === 'win') {
+          node.visible=false;
+        } else if (node.type === 'tab') {
+          if (node.tab.title.search(new RegExp(searchStr, 'i')) === -1){
+            node.visible=false;
+          } else {
+            node.visible=true;
+            node.getParent().visible=true;
+            node.getParent().collapsed=false;
+            $scope.searchCount++;
+          }
+        }
+      });
+      updateLinks();
+      $scope.pointer = getFirstTab();
+      return searchStr;
+    };
+    $scope.searchReset = function(){
+      testData.visitDfs(getNode('root'), function(node) {
+        node.visible = true;
+        if (node.type === 'win') {
+          node.collapsed = true;
+        }
+      });
+      $scope.pointer = getFirstWin();
+      updateLinks();
+    };
+    $scope.searchStr = '';
+    $scope.tabCount = '??';
+    $scope.resetPointer = function() {
+      $scope.pointer = getNode('pinRoot');
+      return $scope.pointer;
+    };
+    $scope.setPointer = function(node) {
+      if (node && node.visible) {
+        $scope.pointer = node;
+      } else if ($scope.pointer && $scope.pointer.visible) {
+        $scope.pointer = node;
+      } else {
+        $scope.pointer = getNode('root');
+      }
+      scrollTop($scope.pointer.id);
+      return $scope.pointer;
+    };
+    $scope.setPointerId = function(id) {
+      $scope.pointer = getNode(id);
+      return $scope.pointer;
+    };
+
+    var getNode = function(id) {
+      return $scope.nodes[id];
+    };
+
+    var deleteNodeId = function(id) {
+      return deleteNode(getNode(id));
+    };
+
+    $scope.getIndexOfPointerWin = function(){
+      var pointerWin = $scope.getPointerWin();
+      return pointerWin.getIndex();
+    };
+    $scope.getPointer = function() {
+      if (! $scope.pointer) { $scope.pointer = getNode('root'); }
+      return $scope.pointer;
+    };
+    $scope.getPointerWin = function() {
+      return $scope.getWin($scope.pointer);
+    };
+    $scope.getWin = function(node) {
+      if (node.istab) {
+        return getNode(node.tab.windowId);
+      } else {
+        return node;
+      }
+    };
+    var getRootNode = function(node) {
+      if (node.type === 'root') {
+        return node;
+      } else {
+        return getWin(node).getParent();
+      }
+    };
+
+/*
+    var pinWin = function(){ 
+      var node = $scope.getPointerWin();
+      if (node.getParent().id === 'winRoot') {
+        var parent = getNode('winRoot');
+      } else {
+        var parent = getNode('pinRoot');
+      }
+      moveNodeToParent(node, parent);
+      node.getParent() = parent;
+    };
+*/
+
+    $scope.getFavIcon = function(tab){
+//      console.log('favicon: ', tab.favIconUrl);
+      if (tab && tab.favIconUrl && tab.favIconUrl.search('^chrome') === -1
+          //&& tab.favIconUrl.search('^https://login.') === -1
+           ) {
+        return tab.favIconUrl;
+      } else {
+        return  chrome.extension.getURL('/img/nav.png');
+      }
+    };
+    var getFirstTab = function(){
+//      var out = testData.nodesQuery(getNode('root'), {visible: true, istab: true});
+//      if (out[0]) { return out[0]; };
+//      return getNode('root');
+      return getNode('root').getNextVis().getNextVis().getNextVis();
+    };
+    var getFirstWin = function(){
+      return getNode('root').getNextVis().getNextVis();
+    };
+
+    var markToNode = function(mark) {
+      var out = testData.nodesQuery(getNode('root'), {mark: mark});
+      return out[0];
+    };
+    var clearMark = function(mark) {
+      var out = testData.nodesQuery(getNode('root'), {mark: mark}, {mark: null});
+      return out;
+    };
+
+    var updateLinks = function(){
+      var output = [];
+      testData.visitDfs(getNode('root'), function(node) {
+        if (node.visible) {
+          output.push(node);
+        }
+        if (node.collapsed) { return true; } //don't process children
+      });
+      output.forEach(function(node, j){
+        var i = parseInt(j);
+        node.setNextVis(output[i + 1]);
+        node.setPrevVis(output[i - 1]);
+      });
+      var last = output.length - 1;
+      output[0].setPrevVis(output[last]);
+      output[last].setNextVis(output[0]);
+      return output;
+    };
+
+
+//TODO move to service?
+/*
+    testData.winUpdateObservers.push(function(winIds){
+      testData.genWinNodesQ(_.keys(toDoWins), $scope.winRoot).then(function(ignore){
+        updateLinks();
+        $scope.$apply();
+//        $scope.pointer = getNode('winRoot').getNextVis();
+      });
+    });
+*/
+
+    var updateWins = _.throttle(function(winId){
+      $scope.changedWins[winId] = true;
+      console.time('updateWins time');
+      $scope.$apply(function(){
+        var toDoWins = $scope.changedWins; //grab snapshot of updateWins
+        $scope.changedWins = {};
+        console.log('updating wins: ', toDoWins);
+        testData.genWinNodesQ(_.keys(toDoWins), $scope.winRoot)
+        .then(function(ignore){
+          updateLinks();
+        });
+      });
+      console.timeEnd('updateWins time');
+    }, 500, {leading: false});  // throttle to once after 500ms
+
+    chrome.runtime.onMessage.addListener(function(message, sender, sendResponse){
+      if (message==='updateCurrentTab') {
+        return;
+      } else if (message.id === 'onWinChange') {
+        //message = {id:, tabId:, winId:, eventType:}
+        console.log('onWinChange: ', message); 
+        updateWins(message.winId);
+      }
+    });
+
+
+// testing Stuff
+    $scope.testDfs = function() {
+      var nd = getNode('root');
+      testData.visitDfs(nd, function(node){
+        console.log(node.id);
+      });
+    };
+
+    $scope.test = function() {
+      console.time('Test tree DFS');
+      testData.visitDfs(getNode('root'), function(node){
+//        console.log(node.id);
+      });
+      console.timeEnd('Test tree DFS');
+      var time = _.now();
+      chrome.windows.getAll({populate: true}, function(wins){
+        var delta = _.now() - time;
+        var sel = _.indexBy(wins, 'id');
+        console.log('winlen: ', wins.length, 'time: ', delta);
+      });
+      time = _.now();
+      chrome.windows.get(668, {populate: true}, function(win){
+        var delta = _.now() - time;
+        console.log('tabslen: ', win.tabs.length, 'time: ', delta);
+      });
+      chrome.windows.getAll({populate: true}, function(wins) {
+        console.log('win ids: ', _.pluck(wins, 'id'));
+        console.log('win and tab ids: ', _.map(wins, function(win){
+          return win.id + '  ' + win.tabs[0].title;
+        }));
+        for (var i in wins) {
+          var win = wins[i];
+          console.log(win.id + '  ' + win.tabs[0].title);
+        }
+      });
+    };
+
+
+    init();
+  }])
+  .controller('MyCtrl2', [function() {
+
+  }]);
+

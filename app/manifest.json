@@ -19,23 +19,20 @@
 //  },
 //  "content_security_policy": "script-src 'self' 'http://static.jstree.com'; object-src 'self'",
 //  "background": {
-//    "script": "lib/kendo.web.min.js"
-//  },
-//  "background": {
 //    "script": "lib/lawnchair.js"
 //  },
 //  "background": {
 //    "script": "lib/lawnchair-adapter-webkit-sqlite-0.6.1.js"
 //  },
-///  "background": {
-///    "script": "js/background.js"
-///  },
+//  "background": {
+//    "script": "scripts/background.js"
+//  },
 //  "background": {
 //    "script": "js/popup.js"
 //  },
-///  "background": {
-///    "page": "background.html"
-///  },
+  "background": {
+    "page": "background.html"
+  },
   "options_page": "index.html",
 ///  "web_accessible_resources": [
 ///    "freezer.html",
@@ -63,32 +60,20 @@
         "default": "Alt+T"
       },
       "description": "Toggle PopUp"
+    },
+    "newNewTab": {
+      "suggested_key": {
+        "default": "Alt+T"
+      },
+      "description": "New new tab"
     }
-///    "newNewTab": {
-///      "suggested_key": {
-///        "default": "Alt+T"
-///      },
-///      "description": "New new tab"
-///    }
-  }
+  },
 //  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
-  // I think I can get rid of inject.js, which just handles alt-A
-///  "content_scripts": [
-//    {
-//      "matches": [ "http://*/*", "https://*/*", "file://*/*" ],
-//      "js": [ "js/inject.js" ],
-//      "run_at": "document_start",
-//      "all_frames": true
-//    },
-///    {
-///      "matches": [ "file:///?tmiFrozen*", "file:///Users/bnutter/opt/tmiFrozen.html*"],
-///      "js": [ "js/injectFreezer.js" ],
-///      "run_at": "document_end"
-///    }
-//    {
-//      "matches": [ "http://*/*", "https://*/*", "file://*/*" ],
-//      "js": [ "js/tmiInject.js" ],
-//      "run_at": "document_start"
-//    }
-///  ]
+  "content_scripts": [
+    {
+      "matches": [ "file:///?tmiFrozen*"],
+      "js": [ "scripts/injectFreezer.js" ],
+      "run_at": "document_end"
+    }
+  ]
 }

@@ -38,7 +38,9 @@
       },
       getWinId: function(){
         return this.tab.windowId;
-      }
+      },
+      isTab: true,
+      tab: this.tab
     });
   })();
 </script>
@@ -86,9 +88,9 @@
     Polymer({
       is: 'tmi-node',
       properties: {
-      mark: {
-        type: String,
-      }
+        mark: {
+          type: String,
+        }
       }
     });
   })();
@@ -143,6 +145,7 @@
         <template is="dom-repeat" items="{{win.tabs}}" as="tab">
           <tmi-tab tab="{{tab}}" id="{{makeId(tab.id)}}"
                    winid$="{{makeId(tab.windowId)}}"
+                   tabid="{{tab.id}}"
                    roott="{{roott}}"
                    class="node"></tmi-tab>
         </template>
@@ -176,7 +179,6 @@
       ready: function() {
         this.makeId = this.roott.makeId;
       },
-
 //      collapse: function(event, detail, sender) {
       toggle: function() {
         if (this.roott.getPointerWin().id === this.id) {
@@ -185,6 +187,8 @@
         this.$.collapse.toggle();
 //        this.querySelector('iron-collapse').toggle()
       },
+      isTab: false,
+      win: this.win,
     });
   })();
 </script>
@@ -257,10 +261,10 @@
             {id: 'id-6666', winId: 6666, hash: 6666},  //should get deleted
 //            {id: 'id-1061'},
           ];
-          this.$.browser.useTestData();
+          this.$.browser.updateWins();
         },
         _syncWins: function(newWinsChange) {
-//          var fullRefresh = true;
+          var fullRefresh = true;
 //TODO    check session id hasn't changed (and can't trust winIds)
           console.log('sync newWins: ', newWinsChange);
           console.log('sync this.newWins: ', this.newWins);
@@ -282,8 +286,10 @@
 //              this.storeWindow();
               }
               delete this.newWins[node.winId];
-//            } else {
-//              if (fullRefresh) { //delete because not in list}
+           } else {
+              if (fullRefresh) {  //delete node because not in newWinsChange
+                this.splice('nodes', i, 1);
+              }
             }
           }
 
@@ -362,6 +368,20 @@
             }
           }
           return 0;
+        },
+
+//TODO: consider 1) el ids (eg "id-1234") 2) closed windows.
+        branchOnNodeType: function(funcs){
+          return function(){
+            var pointer = app.roott.getPointer();
+//            var type = pointer.getType();
+//            funcs[type](pointer[type].id);
+            if (pointer.tab) {
+              funcs.tab(pointer.tab.id);
+            } else {
+              funcs.win(pointer.win.id);
+            }
+          };
         },
 
         //Tree movement
@@ -473,15 +493,21 @@
       },
       ready: function() {
         this.testWinId = 1103;
+        if(window.chrome.windows){  //in extension
+          this.updateWins = this._useRealData;
+        } else {
+          this.updateWins = this._useTestData;
+        }
       },
-      useTestData: function() {
+      _useTestData: function() {
         this.wins = window.testWins;
         this.set('newWins', _.indexBy(window.testWins, 'id'));
       },
-      updateWins: function() {
-//        chrome.windows.getAll({populate: true}, function(newWins) {
-//          this.set('newWins', _.indexBy(newWins, 'id'));
-//        });
+      _useRealData: function() {
+        var self = this;
+        window.chrome.windows.getAll({populate: true}, function(newWins) {
+          self.set('newWins', _.indexBy(newWins, 'id'));
+        });
       },
       testChange: function() {
         var newNewWins = {};
