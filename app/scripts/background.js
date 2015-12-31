@@ -28,7 +28,17 @@ var browser = {
   },
 }; //end browser {}
 
+var tree = {};
 
+//should be [] if in an extension
+tree.nodes = [
+];
+tree.getNodes = function(){
+  return tree.nodes;
+};
+tree.setNodes = function(nodes){
+  tree.nodes = nodes;
+};
 
 /*
 --- freezing
@@ -101,7 +111,7 @@ function freezeTabsRecurse(tabs, callback){
     var tab = tabs.shift();
     console.log('Tabs left to freeze: ', tabs.length);
     freezeTab(tab.id ,function(){freezeTabsRecurse(tabs, callback);});
-  } else{
+  } else {
     freezeTab(tabs[0].id, function(){
       callback();
     });

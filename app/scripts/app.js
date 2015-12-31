@@ -20,7 +20,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   // have resolved and content has been stamped to the page
   app.addEventListener('dom-change', function() {
     console.log('Our app is ready to rock!');
-    app.extensionSpecific();
     app.roott = document.querySelector('#main-tree');
     app.loadKeyMap();
 
@@ -49,18 +48,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
    document.querySelector('paper-drawer-panel').togglePanel();
   };
 
-/*
-  app.isEq = function(arg1, arg2){
-    return arg1 === arg2;
-  };
-*/
-
   // Scroll page to top and expand header
   app.scrollPageToTop = function() {
     console.log('ran app.scrollPateToTop()');
     //app.$.headerPanelMain.scrollToTop(true);
   };
-
 
   app.loadKeyMap = function(){
 // * Keys: [keys, desc, func]
@@ -85,8 +77,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     //nav wintabs
     ['docHeader', 'Nav wintabs', [
       ['enter', 'focus / open', app.roott.branchOnNodeType({
-           tab: app.bg.browser.selectOpenTabId,
-           win: app.bg.browser.focusOpenWindow,
+           tab: tmi.bg.browser.selectOpenTabId,
+           win: tmi.bg.browser.focusOpenWindow,
          }) 
       ],
       ['shift+o', '(un)pin window', function(){app.roott.pin();} ],
@@ -111,11 +103,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 //Freezing
     ['docHeader', 'Manage wintabs',[
       ['f', 'Freeze tab/win', app.roott.branchOnNodeType({
-           tab: app.bg.freezeTab,
-           win: app.bg.freezeWindow,
+           tab: tmi.bg.freezeTab,
+           win: tmi.bg.freezeWindow,
          }) 
       ],
-      ['F', 'Make Freezer (from closed)', function(){app.roott.makeFreezer();} ],
+      ['shift+f', 'Freezer all', function() {tmi.bg.freezeAllWindows();}],
+//      ['F', 'Make Freezer (from closed)', function(){app.roott.makeFreezer();} ],
       ['f b', 'Freeze to Bookmark', function(){app.roott.bmFreeze();} ],
       ['f a', 'Freeze All non-pinned wins', function(){app.roott.freezeAll();} ],
       ['f f', 'Freeze calling tab', function(){app.roott.freezeTab();} ],
@@ -158,23 +151,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     }; 
 
   }; // end loadKeyMap
-
-  app.mockLog = function() {
-    console.log('Mock. This: ', this, 'Args: ', arguments);
-  };
-
-  app.extensionSpecific = function(){
-    if(chrome.extension){
-      app.bg = chrome.extension.getBackgroundPage();
-    } else {
-      app.bg = {
-        browser: {
-          selectOpenTabId: app.mockLog,
-          focusOpenWindow: app.mockLog,
-        },
-      };
-    }
-  };
 
 })(document);
 

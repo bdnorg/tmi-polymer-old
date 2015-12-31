@@ -200,7 +200,6 @@
     .clip {white-space: nowrap; overflow: hidden;}
   </style>
   <template>
-    Tree
     <div class="ind">
     <iron-collapse id="collapseGroup" class="" opened="true">
       <template is="dom-repeat" items="{{nodes}}" as="node">
@@ -229,10 +228,8 @@
         ],
         ready: function() {
           this.roott = this;
-          this.b = this.$.browser;
           this._initData();
-//          this._syncWins(this.newWins);
-          this._useTestData();
+          this.$.browser.updateWins();
         },
         created: function() {},
         attached: function() {},
@@ -241,27 +238,8 @@
         makeId: function(id){return 'id-' + id;},
         // sync Nodes
         _initData:function() {
-          this.nodes = [];
-        },
-        _useTestData:function() {
-          this.nodes = [
-/*
-            {id: 'id-1103', winId: 1103, win: {tabs: [1,2,3]}},
-            {id: 'id-1', winId: 1, win: {}},
-            {id: 'id-565', winId: 565, win: {}},
-            {id: 'id-678', winId: 678, win: {}},
-            {id: 'id-883', winId: 883, win: {}},
-//            {id: 'id-1061'},
-*/
-            {id: 'id-1103', winId: 1103, hash: 1, state: 'save'},
-            {id: 'id-1', winId: 1, hash: 2},
-            {id: 'id-565', winId: 565, hash: 3},
-            {id: 'id-678', winId: 678, hash: 4},
-            {id: 'id-883', winId: 883, hash: 5},
-            {id: 'id-6666', winId: 6666, hash: 6666},  //should get deleted
-//            {id: 'id-1061'},
-          ];
-          this.$.browser.updateWins();
+          this.nodes = tmi.bg.tree.getNodes();
+//          this.set('nodes', tmi.bg.tree.getNodes());
         },
         _syncWins: function(newWinsChange) {
           var fullRefresh = true;
@@ -276,8 +254,9 @@
             var node = this.nodes[i];
             if (this.newWins.hasOwnProperty(node.winId)) { //changed
               if (this.newWins[node.winId]) { //not deleted
-                this.set('nodes.'+i+'.win',
-                         this.newWins[node.winId]);
+                var updatedWin = this.newWins[node.winId];
+//                this.set('nodes.'+i+'.pointer', updatedWin.focused);
+                this.set('nodes.'+i+'.win', updatedWin);
 //              this.storeWindow();
               } else { //deleted
                 //delete node
@@ -295,11 +274,9 @@
 
           // everything left is a new window
           var keys = Object.keys(this.newWins);
-//          for (let key of keys)) {
           for (var j = 0; j < keys.length; j++) {
             var key = keys[j];
             var win = this.newWins[key];
-//              this.wins[this.makeId(win.id)] = win;
             if(win) {
               this.push('nodes', {id: this.makeId(win.id), winId: win.id, win: win});
 //              this.storeWindow();
@@ -307,7 +284,8 @@
               console.log('This should not happen (failed to delete win): ', key);
             }
           }
-//          this.storeWinOrder();
+          tmi.bg.tree.setNodes(this.nodes);
+          this.setPointerToCurrentWin();
         },
 
         //Nodes
@@ -345,6 +323,12 @@
           if (newEl) {
             this.setPointer(newEl);
           }
+        },
+        setPointerToCurrentWin: function() {
+          var self = this;
+          tmi.chrome.windows.getCurrent(function(win){
+            self.setPointerId(self.makeId(win.id));
+          });
         },
         getPointer: function(){
           var pointer = this.myQuery('.node[pointer]');
@@ -492,20 +476,10 @@
         },
       },
       ready: function() {
-        this.testWinId = 1103;
-        if(window.chrome.windows){  //in extension
-          this.updateWins = this._useRealData;
-        } else {
-          this.updateWins = this._useTestData;
-        }
       },
-      _useTestData: function() {
-        this.wins = window.testWins;
-        this.set('newWins', _.indexBy(window.testWins, 'id'));
-      },
-      _useRealData: function() {
+      updateWins: function() {
         var self = this;
-        window.chrome.windows.getAll({populate: true}, function(newWins) {
+        tmi.chrome.windows.getAll({populate: true}, function(newWins) {
           self.set('newWins', _.indexBy(newWins, 'id'));
         });
       },

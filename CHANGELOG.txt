@@ -22,10 +22,27 @@
 - removed routing (was broken in extension)
 - style is broken
 --- commit
+- Changed keyMap 
+- Added background.js 
+- Added freezing.
+--- commit
+- Started on mocks for extension APIs.
+- Add initApp.html to index.html and test/tmi...
+--- commit
+
+---- head
+
+0 search, /deep, x, save, search, shortcut, mgmt, css, more in bg, id naming, save last visited, 
+0 id-# vs. id.  saving pointer state in nodes.
+- remove /deep/
+- make bg work outside extension (with the mocks). (no global functions)
++ app.setPointerToCurrent both in and out of extension
+- global moch for chrome.*
+- duplicate app.js in dist
+? move initApp into tmi-browser?
 
 
 --- Todo
-- remove /deep/
 + tmi-browser component: update from real tabs
 - storage: data model, link stored to real, use bookmarks
 - mark: fix singlequote key event, implement getOneKey()

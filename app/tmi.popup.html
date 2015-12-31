@@ -29,18 +29,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <link rel="stylesheet" href="styles/main.css">
   <!-- endbuild-->
 
-  <!-- build:js bower_components/webcomponentsjs/webcomponents-lite.min.js -->
-  <script src="bower_components/webcomponentsjs/webcomponents-lite.js"></script>
-  <script src="scripts/initApp.js"></script>
-  <!-- endbuild -->
+  <link rel="import" href="initApp.html">
 
-  <!-- will be replaced with elements/elements.vulcanized.html -->
-  <link rel="import" href="elements/elements.html">
-  <!-- endreplace-->
 </head>
 
 <body style="height:800px;width:500px" unresolved class="fullbleed layout vertical">
   <template is="dom-bind" id="app">
+
     <paper-drawer-panel id="paperDrawerPanel" forceNarrow>
       <paper-header-panel drawer mode="standard">
         <!-- Drawer Toolbar -->
@@ -72,51 +67,49 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       </paper-header-panel>
 
       <paper-header-panel main mode="standard">
+
         <!-- Main Toolbar -->
         <paper-toolbar id="mainToolbar">
-          <button tabindex="1" id="paperToggle" paper-drawer-toggle>
+          <button tabindex="1" id="paperToggle">
             <iron-icon icon="menu" paper-drawer-toggle></iron-icon>
           </button>
           <span class="flex">
-            TMI
+            <div class="flex appname bottom paper-font-display1">
+              TMI
+            </div>
           </span>
 
+            <paper-input label="search" stopKeyboardEventPropagation
+                       size="15">
+              <paper-icon-button prefix icon="search">
+              </paper-icon-button>
+            </paper-input>
+
+            <paper-icon-button icon="search"></paper-icon-button>
+            <input is="iron-input" size="15" bind-value="{{myValue}}">
+            </input>
           <div class="middle"></div>
           <!-- Toolbar icons -->
           <paper-icon-button icon="refresh"></paper-icon-button>
-          <paper-icon-button icon="search"></paper-icon-button>
-
-          <!-- Application name -->
-          <!--
-          <div class="appname bottom paper-font-display2">PSK-TMI</div>
-          -->
 
         </paper-toolbar>
 
         <!-- Main Content -->
         <div class="fit">
+          Tree
+          <tmi-tree id="main-tree" appId="app"></tmi-tree>
+        </div>
+      </paper-header-panel>
 
-            <section data-route="home">
-              <paper-material elevation="1">
-                <tmi-tree id="main-tree" appId="app"></tmi-tree>
-              </paper-material>
-            </section>
-
-          </div>
-        </paper-header-panel>
     </paper-drawer-panel>
 
     <iron-a11y-keys id="keys"
+                    stopKeyboardEventPropagation
                     target="{{parentElement}}"
                     keys="enter up down left right space j k h l f a b m O
                     shift+o shift+h ?"
                     on-keys-pressed="keyHandler">
     </iron-a11y-keys>
-
-    <paper-toast id="caching-complete"
-                 duration="6000"
-                 text="Caching complete! This app will work offline.">
-    </paper-toast>
 
   </template>
 
