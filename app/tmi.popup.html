@@ -47,22 +47,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             <iron-icon icon="menu" paper-drawer-toggle></iron-icon>
           </button>
           <span class="flex">Menu</span>
-          <div class="middle"></div>
         </paper-toolbar>
 
         <!-- Drawer Content -->
         <div class="flex">
-          <template is="dom-repeat" items="{{keyMap}}" as="group">
-            <br><u>{{group.1}}</u>
-            <template is="dom-repeat" items="{{group.2}}" as="row">
-              <template is="dom-if" if="{{row.2}}">
-                <div>
-                  &nbsp;<span><b>{{row.1}}</b></span> -
-                    <span>{{row.2}}</span>
-                </div>
-              </template>
-            </template>
-          </template>
+        <tmi-menu id="app-menu"></tmi-menu>
         </div>
       </paper-header-panel>
 
@@ -78,38 +67,20 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               TMI
             </div>
           </span>
-
-            <paper-input label="search" stopKeyboardEventPropagation
-                       size="15">
-              <paper-icon-button prefix icon="search">
-              </paper-icon-button>
-            </paper-input>
-
             <paper-icon-button icon="search"></paper-icon-button>
-            <input is="iron-input" size="15" bind-value="{{myValue}}">
-            </input>
-          <div class="middle"></div>
-          <!-- Toolbar icons -->
-          <paper-icon-button icon="refresh"></paper-icon-button>
-
+            <input id="searchBox" is="iron-input" size="15" 
+                   value="{{searchstr::input}}">
         </paper-toolbar>
 
         <!-- Main Content -->
         <div class="fit">
           Tree
-          <tmi-tree id="main-tree" appId="app"></tmi-tree>
+          <tmi-tree id="main-tree" appId="app" searchstr="{{searchstr}}">
+          </tmi-tree>
         </div>
       </paper-header-panel>
 
     </paper-drawer-panel>
-
-    <iron-a11y-keys id="keys"
-                    stopKeyboardEventPropagation
-                    target="{{parentElement}}"
-                    keys="enter up down left right space j k h l f a b m O
-                    shift+o shift+h ?"
-                    on-keys-pressed="keyHandler">
-    </iron-a11y-keys>
 
   </template>
 

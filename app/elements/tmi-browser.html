@@ -1,0 +1,35 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<dom-module id="tmi-browser">
+</dom-module>
+<script>
+  (function () {
+    Polymer({
+      is: 'tmi-browser',
+      properties: {
+        newWins: {
+          type: Object,
+          notify: true,
+        },
+      },
+      ready: function() {
+      },
+      updateWins: function() {
+        var self = this;
+        tmi.chrome.windows.getAll({populate: true}, function(newWins) {
+          self.set('newWins', _.indexBy(newWins, 'id'));
+        });
+      },
+      testChange: function() {
+        var newNewWins = {};
+        newNewWins[this.testWinId] = false;
+        this.testWinId = this.testWinId + 10;
+        newNewWins[this.testWinId] = {id: this.testWinId,
+                              tabs: [{id: this.testWinId + 1,
+                                      title: 'Added test tab'},
+                                     1,2,3]};
+        this.set('newWins', newNewWins);
+      },
+    });
+  })();
+</script>

@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="tmi-tree.css">
+<link rel="import" href="../bower_components/polymer/polymer.html">
 
 <dom-module id="tmi-tab">
   <style>
@@ -139,18 +139,18 @@
     <content></content>
 
 <!--
--->
     <iron-collapse id="collapse" class="">
       <div class="collapse-content tabBlock ind clip">
         <template is="dom-repeat" items="{{win.tabs}}" as="tab">
-          <tmi-tab tab="{{tab}}" id="{{makeId(tab.id)}}"
-                   winid$="{{makeId(tab.windowId)}}"
+          <tmi-tab tab="{{tab}}" id="{{roott.makeId(tab.id)}}"
+                   winid$="{{roott.makeId(tab.windowId)}}"
                    tabid="{{tab.id}}"
                    roott="{{roott}}"
                    class="node"></tmi-tab>
         </template>
       </div>
     </iron-collapse>
+-->
 
   </template>
 </dom-module>
@@ -177,15 +177,14 @@
         },
       },
       ready: function() {
-        this.makeId = this.roott.makeId;
       },
 //      collapse: function(event, detail, sender) {
       toggle: function() {
         if (this.roott.getPointerWin().id === this.id) {
           this.roott.setPointerId(this.id);
         }
-        this.$.collapse.toggle();
-//        this.querySelector('iron-collapse').toggle()
+//        this.$.collapse.toggle();
+        this.querySelector('iron-collapse').toggle();
       },
       isTab: false,
       win: this.win,
@@ -208,6 +207,20 @@
                     class="node" roott="{{roott}}"
                     pointer$="{{node.pointer}}">
 
+
+          <iron-collapse id="collapse" class="">
+            <div class="collapse-content tabBlock ind clip">
+              <template is="dom-repeat" items="{{node.win.tabs}}" as="tab"
+                        filter="{{tabFilter(searchstr)}}">
+                <tmi-tab tab="{{tab}}" id="{{makeId(tab.id)}}"
+                         winid$="{{makeId(tab.windowId)}}"
+                         tabid="{{tab.id}}"
+                         roott="{{roott}}"
+                         class="node"></tmi-tab>
+              </template>
+            </div>
+          </iron-collapse>
+
         </tmi-window>
       </template>
     </iron-collapse>
@@ -219,20 +232,27 @@
   <script>
     (function () {
       'use strict';
-      Polymer({
+      var polymerObj = {
+//      Polymer({
         is: 'tmi-tree',
         properties: {
+          searchstr: {
+            type: String,
+            notify: true,
+          }
         },
         observers: [
-          '_syncWins(newWins.*)'
+          '_syncWins(newWins.*)',
+          'setPointerOnSearch(searchstr)',
         ],
         ready: function() {
-          this.roott = this;
           this._initData();
+          this.roott = this;
           this.$.browser.updateWins();
         },
         created: function() {},
         attached: function() {},
+        nodes: [],
 
         // Tree helpers
         makeId: function(id){return 'id-' + id;},
@@ -288,35 +308,62 @@
           this.setPointerToCurrentWin();
         },
 
+        tabFilter: function(string) {
+          if (!string) {
+            // set filter to null to disable filtering
+            return null;
+          } else {
+            // return a filter function for the current search string
+            string = string.toLowerCase();
+            return function(tab) {
+              var title = tab.title.toLowerCase();
+              var url = tab.url.toLowerCase();
+              return (title.indexOf(string) !== -1 ||
+                url.indexOf(string) !== -1);
+            };
+          }
+        },
+
+
         //Nodes
-        myQuery: function(query){
-          var el = this.shadowRoot.querySelector('::shadow .iron-collapse-opened ' + query + ', ' + query);
-//          var el = this.shadowRoot.querySelector('.iron-collapse-opened >' + query);
-          return el;
+        treeQuery: function(query){
+//          var el = this.shadowRoot.querySelector('::shadow .iron-collapse-opened ' + query + ', ' + query);
+          return this.$$('tmi-window .iron-collapse-opened ' + query + ', ' + query);
+//          var el = this.shadowRoot.querySelector('tmi-window .iron-collapse-opened ' + query + ', ' + query);
+//          return el;
+        },
+        treeQueryAll: function(query){
+          var els = this.shadowRoot.querySelectorAll('tmi-window .iron-collapse-opened ' + query + ', ' + query);
+          return els;
         },
         getNode: function(id){
-          return this.myQuery('#' + id);
+          return this.treeQuery('#' + id);
         },
         getFirstEl: function(){
-          return this.myQuery('tmi-window');
+          return this.treeQuery('tmi-window');
         },
         getVisibleEls: function(){
-//          return this.shadowRoot.querySelectorAll('.iron-collapse-opened > .collapse-content > .node, .iron-collapse-opened >.node');
-          return this.shadowRoot.querySelectorAll('.node, ::shadow .iron-collapse-opened .node');
+//          return this.shadowRoot.querySelectorAll('.node, ::shadow .iron-collapse-opened .node');
+          return this.shadowRoot.querySelectorAll('tmi-window, tmi-window .iron-collapse-opened tmi-tab');
         },
 
 
         //Pointer
         setPointer: function(el){
           var oldEl = this.getPointer();
-          if (oldEl) {
-            this.getPointer().removeAttribute('pointer');
+          if (! el) {
+            el = this.getFirstEl();
           }
-          if (el) {
-            el.setAttribute('pointer', '');
-          } else {
-            this.getFirstEl().setAttribute('pointer', '');
-          }
+          return this.attributeFollows('pointer', el, oldEl);
+
+//          if (oldEl) {
+//            this.getPointer().removeAttribute('pointer');
+//          }
+//          if (el) {
+//            el.setAttribute('pointer', '');
+//          } else {
+//            this.getFirstEl().setAttribute('pointer', '');
+//          }
         },
         setPointerId: function(id){
           var newEl = this.getNode(id);
@@ -326,12 +373,14 @@
         },
         setPointerToCurrentWin: function() {
           var self = this;
-          tmi.chrome.windows.getCurrent(function(win){
-            self.setPointerId(self.makeId(win.id));
+          this.async(function(){
+            tmi.chrome.windows.getCurrent(function(win){
+              self.setPointerId(self.makeId(win.id));
+            });
           });
         },
         getPointer: function(){
-          var pointer = this.myQuery('.node[pointer]');
+          var pointer = this.treeQuery('.node[pointer]');
           if (!pointer) {
             pointer = this.getFirstEl();
             pointer.setAttribute('pointer', '');
@@ -356,8 +405,9 @@
 
 //TODO: consider 1) el ids (eg "id-1234") 2) closed windows.
         branchOnNodeType: function(funcs){
+          var self = this;
           return function(){
-            var pointer = app.roott.getPointer();
+            var pointer = self.getPointer();
 //            var type = pointer.getType();
 //            funcs[type](pointer[type].id);
             if (pointer.tab) {
@@ -404,8 +454,32 @@
           this.splice('nodes', i, 1);
           this.unshift('nodes', moved);
         },
-        searchMode: function(){},
-        clearInput: function(){},
+        hideAll: function(){
+          var wins = this.treeQueryAll('tmi-window iron-collapse');
+          for (var i=0; i < wins.length; i++) {
+            wins[i].hide();
+          }
+          this.setPointerToCurrentWin();
+        },
+        showAll: function(){
+          var wins = this.treeQueryAll('tmi-window iron-collapse');
+          for (var i=0; i < wins.length; i++) {
+            wins[i].show();
+          }
+        },
+        searchMode: function(e){
+          this.showAll();
+          console.log('searching');
+          e.preventDefault();
+//          this.treeQuery('input').focus();
+          document.querySelector('#searchBox').focus();
+        },
+        setPointerOnSearch: function(searchstr){
+          this.async( function(){
+            var firstTab = this.treeQuery('tmi-tab');
+            this.setPointer(firstTab);
+          });
+        },
         getNodeFromMark: function(mark){
           var elList = this.getVisibleEls();
           var i = elList.length;
@@ -458,41 +532,14 @@
         },
 
 
-      });
+      }; // end polymerObj {}
+//      _.bindAll(polymerObj);
+//      polymerObj.polymerObjKeys = Object.keys(polymerObj);
+      polymerObj.methodNames = _.select( Object.keys(polymerObj),
+        function(n){ return _.isFunction(polymerObj[n]); });
+      Polymer(polymerObj);
+//      }); //end Polymer()
     })();
   </script>
 
 
-<dom-module id="tmi-browser">
-</dom-module>
-<script>
-  (function () {
-    Polymer({
-      is: 'tmi-browser',
-      properties: {
-        newWins: {
-          type: Object,
-          notify: true,
-        },
-      },
-      ready: function() {
-      },
-      updateWins: function() {
-        var self = this;
-        tmi.chrome.windows.getAll({populate: true}, function(newWins) {
-          self.set('newWins', _.indexBy(newWins, 'id'));
-        });
-      },
-      testChange: function() {
-        var newNewWins = {};
-        newNewWins[this.testWinId] = false;
-        this.testWinId = this.testWinId + 10;
-        newNewWins[this.testWinId] = {id: this.testWinId,
-                              tabs: [{id: this.testWinId + 1,
-                                      title: 'Added test tab'},
-                                     1,2,3]};
-        this.set('newWins', newNewWins);
-      },
-    });
-  })();
-</script>

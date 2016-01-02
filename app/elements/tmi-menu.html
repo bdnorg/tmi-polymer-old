@@ -1,0 +1,51 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<dom-module id="tmi-menu">
+  <style>
+    :host {display: block;}
+    :host([pointer]) {background-color: pink;}
+    .ind {margin-left: 1.5em;
+    .clip {white-space: nowrap; overflow: hidden;}
+    }
+  </style>
+  <template>
+    <div class="flex">
+    </div>
+    <template is="dom-repeat" items="{{keyMap}}" as="group">
+      <br><u>{{group.1}}</u>
+      <template is="dom-repeat" items="{{group.2}}" as="row">
+        <template is="dom-if" if="{{row.1}}">
+          <div>
+            &nbsp;<span><b>{{row.0}}</b></span> -
+              <span>{{row.1}}</span>
+          </div>
+        </template>
+      </template>
+    </template>
+  </template>
+</dom-module>
+<script>
+  (function () {
+    Polymer({
+      is: 'tmi-menu',
+      properties: {
+        tab: {
+          type: Object,
+        },
+        roott: {
+          type: Object,
+        },
+        winid: {
+          readOnly: true,
+          reflectToAttribute: true,
+          type: String,
+        },
+      },
+      getWinId: function(){
+        return this.tab.windowId;
+      },
+      isTab: true,
+      tab: this.tab
+    });
+  })();
+</script>

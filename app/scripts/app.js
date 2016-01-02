@@ -21,6 +21,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   app.addEventListener('dom-change', function() {
     console.log('Our app is ready to rock!');
     app.roott = document.querySelector('#main-tree');
+    app.roott = document.querySelector('#main-tree');
+//    _.bindAll(app.roott);  //binds everything
+// just binds functions defined in tmi-tree
+//    var roottMethods = _.select(app.roott.polymerObjKeys, function(n){
+//                         return _.isFunction(app.roott[n]); });
+//    _.bindAll(app.roott, roottMethods);
+    _.bindAll(app.roott, app.roott.methodNames);
     app.loadKeyMap();
 
     //for debugging
@@ -63,7 +70,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     ['docHeader', 'Tree movement', [
       ['jkhl \u2190\u2191\u2192\u2193', 'movement', false],
       ['jkhl \u25C0\u25B2\u25BA\u25BC', 'movement', false],
-      ['j', false, function(){app.roott.down();} ],
+// _bindAll allows this.  Just bindAll the arg to Polymer() ?
+      ['j', false, app.roott.down ],
+//      ['j', false, function(){app.roott.down();} ],
       ['k', false, function(){app.roott.up();} ],
       ['h', false, function(){app.roott.left();} ],
       ['l', false, function(){app.roott.right();} ],
@@ -82,8 +91,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
          }) 
       ],
       ['shift+o', '(un)pin window', function(){app.roott.pin();} ],
-      ['/', 'search', function(){app.roott.searchMode();} ],
-      ['escape', 'clear search', function(){app.roott.clearInput();} ],
+      ['/', 'search', function(e){app.roott.searchMode(e);} ],
+      ['esc', 'search', function(e){app.clearSearch(e);} ],
       ['\'', 'goto tag', function(){app.roott.goMark();} ],
       ['m', 'mark tag', function(){app.roott.mark();} ],
     ]],
@@ -116,7 +125,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 //Popup manage
     ['docHeader', 'Manage popup', [
-      ['shift+?', 'Show menu', function(){app.showHelp();} ],
+      ['?', 'Show menu', function(){app.showHelp();} ],
       ['q', 'close TMI', function(){app.roott.closeTmi();} ],
       ['r', 'Refresh', function(){app.roott.refreshTmi();} ],
       ['T', 'break point (for testing)', function(){app.roott.doBreakPoint();} ],
@@ -129,28 +138,29 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       for (var j = 0; j < sectionRows.length; j++) {
         var keyRow = sectionRows[j];
         if(keyRow[2]){
-          app.keyOut[keyRow[0]] = keyRow[2];
+//          app.keyOut[keyRow[0]] = keyRow[2];
+          Mousetrap.bind(keyRow[0], keyRow[2]);
         }
       }
     }
 
-    app.getKeyStr = function(detail) {
-      var shift = (detail.keyboardEvent.shiftKey ? 'shift+' : '') ;
-      var ctrl = (detail.keyboardEvent.ctrlKey ? 'ctrl+' : '') ;
-      var alt = (detail.keyboardEvent.altKey ? 'alt+' : '') ;
-      return shift + ctrl + alt + detail.key ;
+    var menu = document.querySelector('tmi-menu');
+    menu.keyMap = app.keyMap;
+    var searchBox = document.querySelector('#searchBox');
+    var searchKey = new Mousetrap(searchBox);
+    app.clearSearch = function(e){
+      e.preventDefault();
+      app.searchstr = '';
+      app.roott.hideAll();
+      searchBox.blur(); 
     };
-
-    app.keyHandler = function(e, detail, sender) {
-      console.log(sender);
-      var key = app.getKeyStr(detail);
-      console.log('key: ', key, app.keyOut[key], e);
-      if (app.keyOut[key]) { 
-        app.keyOut[key]();
-      }
-    }; 
+    searchKey.bind('esc', app.clearSearch);
+    searchKey.bind('return', function(e){ 
+      searchBox.blur(); 
+    });
 
   }; // end loadKeyMap
+
 
 })(document);
 
