@@ -32,17 +32,9 @@
 
 
   <!-- chrome.windows.getAll() data in window.testWins -->
+  <!-- 
   <script src="../scripts/chrome.windows.test.data.js"></script>
-  <script>
-          window.ttree = [
-            {id: 'wina',
-             tabs: [{id: 1, title: 't1'},
-                    {id:2, title: 't2'}]},
-            {id: 'winb',
-             tabs: [{id: 3, title: 't3'},
-                    {id:4, title: 't4'}]},
-          ];
-  </script>
+  -->
 
 </head>
 <body>
@@ -75,114 +67,194 @@
 
       test('Check first line', function(done) {
         flush(function() {
-//          var firstLine = document.querySelector('tmi-tree::shadow tmi-window::shadow tmi-win-display::shadow span').innerText;
-          var firstLine = document.querySelector('tmi-tree').shadowRoot.querySelector('tmi-window').shadowRoot.querySelector('tmi-win-display').shadowRoot.querySelector('span').innerText;
-          assert.equal(firstLine, "a - Google Search");
-          var firstEl = el.getFirstEl();
-          assert.equal(firstEl.id, "id-1103");
+          var firstLine = el.$$('tmi-window').win.tabs[0].title;
+          assert.equal(firstLine, "Title - 1001");
+          var deepFirstLine = el.$$('tmi-window').$$('tmi-win-display').$$('span').innerText
+          assert.equal(deepFirstLine, "Title - 1001");
           done();
         });
       });
 
-      test('Check node API', function(done) {
+      test('TODO Check node API', function(done) {
         flush(function() {
-          //myQuery getNode getFirstEl getVisibleEls
-          assert.equal(el.myQuery('#id-565').id, 'id-565');
-          assert.equal(el.getNode('id-565').id, 'id-565');
-          assert.equal(el.getFirstEl().id, 'id-1103');
-          assert.equal(el.getVisibleEls().length, 6);
-//          el.right(); //TODO async
-//          assert.equal(el.getVisibleEls().length, 6);
+          assert.equal(el.treeQuery('#id-601').id, 'id-601');
+//          assert.equal(el.treeQuery('#id-901').win.tabs.length, 90);
+          assert.equal(el.getNode('id-801').id, 'id-801');
+          assert.equal(el.getFirstEl().id, 'id-10');
+          assert.equal(el.getVisibleEls().length, 12);
+          done();
+        });
+      });
 
+      test('TODO Check pointer API', function(done) {
+        flush(function() {
+          assert.equal(el.getPointer().id, 'id-6');
+          el.setPointerId('id-3');
+          assert.equal(el.getPointer().id, 'id-3');
+          el.setPointer(el.getFirstEl())
+          assert.equal(el.getPointer().id, 'id-10');
           done();
         });
       });
 
       test('Check pointer movement', function(done) {
         flush(function() {
-          el.up();  //wraps around
-          assert.equal(el.getPointer().id, 'id-1061');
-          el.down();
-          assert.equal(el.getPointer().id, 'id-1103');
-          el.down();
-          el.down();
-          el.right(); //TODO need async test
-          el.up();
-          assert.equal(el.getPointer().id, 'id-1');
-          el.down();
-          assert.equal(el.getPointer().id, 'id-565');
-          el.$.browser.testChange();
-          setTimeout(function(){
+          //start off with pointer at "current win"
+          assert.equal(el.getPointer().id, 'id-6');
+          el.down();  
+          el.up();  
+          assert.equal(el.getPointer().id, 'id-6');
+          el.right();  
+          el.up();  
+          assert.equal(el.getPointer().id, 'id-5');
+          el.up();  
+          el.up();  
+          el.up();  
+          //saved order was recovered
+          assert.equal(el.getPointer().id, 'id-9');
+          //wrap around
+          el.up();  
+          el.up();  
+          el.up();  
+          el.up();  
+          el.up();  
+          assert.equal(el.getPointer().id, 'id-11');
+          //check expanding
+          el.right();  
+          flush(function() {
             el.down();
             el.down();
-            el.down();
-            assert.equal(el.getPointer().id, 'id-976');
-            assert.equal(el.getPointerWin().id, 'id-565');
-            assert.equal(el.getPointerIndex(el.getVisibleEls()), 5);
-            el.left();
-            assert.equal(el.getPointer().id, 'id-565');
-            el.up();
-            el.up();
-            el.up();
-            assert.equal(el.getPointer().id, 'id-999999');
-            el.up();
-            el.up();
-            el.up();
-            assert.equal(el.getPointer().id, 'id-565');
+            assert.equal(el.getPointer().id, 'id-1102');
+            el.up();  
+            el.up();  
+            el.up();  
+            el.up();  
+            el.up();  
+            el.up();  
+            assert.equal(el.getPointer().id, 'id-604');
             done();
-          }, 900);
-
+          });
         });
       });
 
-      test('Check pointer API', function(done) {
+      test('Check search', function(done) {
         flush(function() {
-          assert.equal(el.getPointer().id, 'id-1103');
-          el.setPointerId('id-883')
-          assert.equal(el.getPointer().id, 'id-883');
-          el.setPointer(el.getFirstEl())
-          assert.equal(el.getPointer().id, 'id-1103');
-
-/*
-          getPointerWin
-          setPointer
-          setPointerId
-          getPointer
-          getPointerIndex
-
-*/ 
-
-          done();
+          //match title
+          el.searchstr='Title - 21';
+          flush(function() {
+            assert.equal(el.getVisibleEls().length, 11);
+            assert.equal(el.getFirstEl().id, 'id-2');
+            assert.equal(el.treeQuery('tmi-tab').id, 'id-210');
+            //check pointer
+            assert.equal(el.getPointer().id, 'id-210');
+            //match URL
+            el.searchstr='google.com/#q=111';
+            flush(function() {
+              assert.equal(el.getVisibleEls().length, 13);
+              assert.equal(el.getFirstEl().id, 'id-1');
+              assert.equal(el.treeQuery('tmi-tab').id, 'id-111');
+              //match both
+              el.searchstr='123';
+              flush(function() {
+                //check movement in search results
+                el.down();
+                assert.equal(el.getPointer().id, 'id-12');
+                el.down();
+                assert.equal(el.getPointer().id, 'id-1230');
+                //broaden search
+                el.searchstr='12';
+                flush(function() {
+                  assert.equal(el.getVisibleEls().length, 115);
+                  assert.equal(el.getPointer().id, 'id-1012');
+                  //clear search
+                  el.searchstr='';
+                  flush(function() {
+                    assert.equal(el.getVisibleEls().length, 12);
+                    assert.equal(el.getFirstEl().id, 'id-10');
+                    assert.equal(el.getPointer().id, 'id-6');
+                    done();
+                  });
+                });
+              });
+            });
+          });
+        });
+      });
+      test('Check select', function(done) {
+        flush(function() {
+          el.selectId('id-3');
+          assert.equal(el.getSelectedValues()[0], 'id-3');
+          el.right();
+          el.up();
+          el.right();
+          flush(function() {
+            //select tabs
+            el.selectId('id-501');
+            el.selectId('id-603');
+            assert.equal(el.getSelectedValues().length, 3);
+            assert.equal(el.getSelectedValues()[0], 'id-3');
+            assert.equal(el.getSelectedValues()[2], 'id-603');
+            //unselect
+            el.selectId('id-501');
+            assert.equal(el.getSelectedValues().length, 2);
+            assert.equal(el.getSelectedValues()[1], 'id-603');
+            //clear selections
+            el.clearSelected();
+            assert.equal(el.getSelectedValues().length, 0);
+            //pointer select
+            el.setPointerId('id-5');
+            el.selectPointer();
+            el.down();
+            el.down();
+            el.down();
+            el.down();
+            el.selectPointer();
+            flush(function() {
+              assert.equal(el.getSelectedValues().length, 2);
+              assert.equal(el.getSelectedValues()[0], 'id-5');
+              assert.equal(el.getSelectedValues()[1], 'id-602');
+              el.clearSelected();
+              //selecToEnd (toggle each)
+              el.setPointerId('id-602');
+              el.selectId('id-604');
+              el.selectToEnd()
+              assert.equal(el.getSelectedValues().length, 3);
+              assert.equal(el.getSelectedValues()[1], 'id-603');
+              assert.equal(el.getSelectedValues()[2], 'id-605');
+              // convert wins to tabs. maintain model order.
+              el.selectId('id-3');
+              var tabs = el.getSelectedTabs();
+              assert.equal(tabs.length, 13);
+              assert.equal(tabs[0].id, 301);
+              assert.equal(tabs[9].id, 310);
+              assert.equal(tabs[10].id, 602);
+              assert.equal(tabs[12].id, 605);
+              done();
+            });
+          });
         });
       });
 
-      test('Check key press', function(done) {
+      // pin test changes stored order, affecting further tests.
+      // fix or keep this test last.
+      test('Check pin', function(done) {
         flush(function() {
-          el.down();
-          assert.equal(el.getPointer().id, 'id-1');
-          done();
-        });
-      });
-
-      test('dummy Check collapsing', function(done) {
-        flush(function() {
-          el.down();
-          assert.equal(1, 1);
-          done();
+          el.pin();
+          flush(function() {
+            assert.equal(el.getFirstEl().id, 'id-6');
+            el.setPointerId('id-10')
+            el.pin();
+            flush(function() {
+              assert.equal(el.getFirstEl().id, 'id-10');
+//check pin in search
+              done();
+            });
+          });
         });
       });
 
       test('dummy 2', function(done) {
         flush(function() {
-          el.down();
-          assert.equal(1, 1);
-          done();
-        });
-      });
-
-      test('dummy 3', function(done) {
-        flush(function() {
-          el.down();
           assert.equal(1, 1);
           done();
         });

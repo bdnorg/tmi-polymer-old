@@ -34,13 +34,20 @@
 - added _.bindAll and cleaned key mapping functions.
 - added search
 --- commit
+- fixed tests
+- hide windows w/o search matches. 
+- get rid of viewModel.  Just use viewTabs in nodes.
+- added selecting
+--- commit
 
 ---- head
 
-! hide windows w/o matches. update tab counts in wins. fix tests. clean up mapping functions.
-! test pinning/movemen/etc. while in search filtered list.
-! get rid of roott references in tmi-tree
-0 search, /deep, x, save, search, shortcut, mgmt, css, more in bg, id naming, save last visited, 
+! add a named win to test (and search)
+! fix and test treeQuery...
+! decide on right() behavior (point to active?, right again?)
+! get list of wins from tmi-browser (not object). maintain that order.
+! search: if matches win it should show even if viewTabs.length === 0
+0 x, p, scroll, save, shortcut, mgmt, css, more in bg, id naming, save last visited, 
 0 id-# vs. id.  saving pointer state in nodes.
 - remove /deep/
 - make bg work outside extension (with the mocks). (no global functions)
@@ -48,9 +55,11 @@
 - global moch for chrome.*
 - duplicate app.js in dist
 ? move initApp into tmi-browser?
+- don't load extra stuff(unused elements, mocks, duplicate in vulcanized)
 
 
 --- Todo
+- things like istab should be in the model, not just the dom
 + tmi-browser component: update from real tabs
 - storage: data model, link stored to real, use bookmarks
 - mark: fix singlequote key event, implement getOneKey()

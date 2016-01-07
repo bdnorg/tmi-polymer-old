@@ -8,7 +8,7 @@
       is: 'tmi-browser',
       properties: {
         newWins: {
-          type: Object,
+          type: Array,
           notify: true,
         },
       },
@@ -17,7 +17,8 @@
       updateWins: function() {
         var self = this;
         tmi.chrome.windows.getAll({populate: true}, function(newWins) {
-          self.set('newWins', _.indexBy(newWins, 'id'));
+//          self.set('newWins', _.indexBy(newWins, 'id'));
+          self.set('newWins', newWins);
         });
       },
       testChange: function() {

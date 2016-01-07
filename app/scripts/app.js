@@ -22,11 +22,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     console.log('Our app is ready to rock!');
     app.roott = document.querySelector('#main-tree');
     app.roott = document.querySelector('#main-tree');
-//    _.bindAll(app.roott);  //binds everything
-// just binds functions defined in tmi-tree
-//    var roottMethods = _.select(app.roott.polymerObjKeys, function(n){
-//                         return _.isFunction(app.roott[n]); });
-//    _.bindAll(app.roott, roottMethods);
+// bindAll fixes this for functions in keyMap.
     _.bindAll(app.roott, app.roott.methodNames);
     app.loadKeyMap();
 
@@ -73,14 +69,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 // _bindAll allows this.  Just bindAll the arg to Polymer() ?
       ['j', false, app.roott.down ],
 //      ['j', false, function(){app.roott.down();} ],
-      ['k', false, function(){app.roott.up();} ],
-      ['h', false, function(){app.roott.left();} ],
-      ['l', false, function(){app.roott.right();} ],
+      ['k', false, app.roott.up],
+      ['h', false, app.roott.left],
+      ['l', false, app.roott.right],
       ['doc', 'shift+ jk\u25B2\u25BC', 'move x 10'],
-      ['shift+j', false, function(){app.roott.downTen();} ],
-      ['shift+k', false, function(){app.roott.upTen();} ],
-      ['1 shift+g', 'move to top', function(){app.roott.moveTop();} ],
-      ['shift+g', 'move to bottom', function(){app.roott.moveBottom();}],
+      ['J', false, app.roott.downTen],
+      ['K', false, app.roott.upTen],
+      ['1 G', 'move to top', app.roott.moveTop],
+      ['G', 'move to bottom', app.roott.moveBottom],
     ]],
 
     //nav wintabs
@@ -90,23 +86,23 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
            win: tmi.bg.browser.focusOpenWindow,
          }) 
       ],
-      ['shift+o', '(un)pin window', function(){app.roott.pin();} ],
+      ['o', '(un)pin window', app.roott.pin],
       ['/', 'search', function(e){app.roott.searchMode(e);} ],
       ['esc', 'search', function(e){app.clearSearch(e);} ],
-      ['\'', 'goto tag', function(){app.roott.goMark();} ],
-      ['m', 'mark tag', function(){app.roott.mark();} ],
+      ['\'', 'goto tag', app.roott.goMark],
+      ['m', 'mark tag', app.roott.mark],
     ]],
 
 //manage wintabs
     ['docHeader', 'Manage wintabs', [
-      ['x', 'select node', function(){app.roott.select();} ],
-      ['shift+x', 'mark tabs to end of win', function(){app.roott.markToEnd();} ],
-      ['p', 'paste after point', function(){app.roott.putAfterTab();} ],
-      ['P', 'marked tabs to new window', function(){app.roott.putNewWin();} ],
-      ['n', 'name window', function(){app.roott.nameWin();} ],
-      ['w s', 'mark Window to Save', function(){app.roott.toSave();} ],
-      ['w c', 'Close Window (keep node)', function(){app.roott.closeWin();} ],
-      ['w d', 'Window Delete (for closed)', function(){app.roott.deleteWin();}],
+      ['x', 'select node', app.roott.selectPointer],
+      ['X', 'mark tabs to end of win', app.roott.selectToEnd],
+      ['p', 'paste after point', app.roott.putAfterTab],
+      ['P', 'marked tabs to new window', app.roott.putNewWin],
+      ['n', 'name window', app.roott.nameWin],
+      ['w s', 'mark Window to Save', app.roott.toSave],
+      ['w c', 'Close Window (keep node)', app.roott.closeWin],
+      ['w d', 'Window Delete (for closed)', app.roott.deleteWin],
     ]],
 
 //Freezing
@@ -116,19 +112,19 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
            win: tmi.bg.freezeWindow,
          }) 
       ],
-      ['shift+f', 'Freezer all', function() {tmi.bg.freezeAllWindows();}],
+      ['shift+f', 'Freezer all', tmi.bg.freezeAllWindows],
 //      ['F', 'Make Freezer (from closed)', function(){app.roott.makeFreezer();} ],
-      ['f b', 'Freeze to Bookmark', function(){app.roott.bmFreeze();} ],
-      ['f a', 'Freeze All non-pinned wins', function(){app.roott.freezeAll();} ],
-      ['f f', 'Freeze calling tab', function(){app.roott.freezeTab();} ],
+      ['f b', 'Freeze to Bookmark', app.roott.bmFreeze],
+      ['f a', 'Freeze All non-pinned wins', app.roott.freezeAll],
+      ['f f', 'Freeze calling tab', app.roott.freezeTab],
     ]],
 
 //Popup manage
     ['docHeader', 'Manage popup', [
-      ['?', 'Show menu', function(){app.showHelp();} ],
-      ['q', 'close TMI', function(){app.roott.closeTmi();} ],
-      ['r', 'Refresh', function(){app.roott.refreshTmi();} ],
-      ['T', 'break point (for testing)', function(){app.roott.doBreakPoint();} ],
+      ['?', 'Show menu', app.showHelp],
+      ['q', 'close TMI', app.roott.closeTmi],
+      ['r', 'Refresh', app.roott.refreshTmi],
+      ['T', 'break point (for testing)', app.roott.doBreakPoint],
     ]],
   ];
 
@@ -152,6 +148,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       e.preventDefault();
       app.searchstr = '';
       app.roott.hideAll();
+      app.roott.clearSelected();
       searchBox.blur(); 
     };
     searchKey.bind('esc', app.clearSearch);
