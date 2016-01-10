@@ -14,7 +14,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   // and give it some initial binding values
   // Learn more about auto-binding templates at http://goo.gl/Dx1u2g
   var app = document.querySelector('#app');
-  
+
 
   // Listen for template bound event to know when bindings
   // have resolved and content has been stamped to the page
@@ -68,23 +68,22 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       ['jkhl \u25C0\u25B2\u25BA\u25BC', 'movement', false],
 // _bindAll allows this.  Just bindAll the arg to Polymer() ?
       ['j', false, app.roott.down ],
-//      ['j', false, function(){app.roott.down();} ],
       ['k', false, app.roott.up],
       ['h', false, app.roott.left],
       ['l', false, app.roott.right],
       ['doc', 'shift+ jk\u25B2\u25BC', 'move x 10'],
-      ['J', false, app.roott.downTen],
-      ['K', false, app.roott.upTen],
-      ['1 G', 'move to top', app.roott.moveTop],
-      ['G', 'move to bottom', app.roott.moveBottom],
+//      ['J', false, app.roott.downTen],
+//      ['K', false, app.roott.upTen],
+      ['g', 'move to top win/tab', app.roott.setPointerToTop],
+      ['G', 'move to bottom win/tab', app.roott.setPointerToBottom],
     ]],
 
     //nav wintabs
     ['docHeader', 'Nav wintabs', [
-      ['enter', 'focus / open', app.roott.branchOnNodeType({
+      ['enter', 'focus / open', app.roott.branchPointerWrap({
            tab: tmi.bg.browser.selectOpenTabId,
            win: tmi.bg.browser.focusOpenWindow,
-         }) 
+         })
       ],
       ['o', '(un)pin window', app.roott.pin],
       ['/', 'search', function(e){app.roott.searchMode(e);} ],
@@ -108,10 +107,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 //Freezing (acts on current rather than pointer)
     ['docHeader', 'Manage wintabs',[
       ['f f', 'Freeze calling tab', app.roott.freezeCurrentTab],
-      ['f p', 'Freeze pointer', app.roott.branchOnNodeType({
+      ['f p', 'Freeze pointer', app.roott.branchPointerWrap({
            tab: tmi.bg.freezeTab,
            win: tmi.bg.freezeWindow,
-         }) 
+         })
       ],
       ['f w', 'Freeze window non-pinned tabs', app.roott.freezeWindow],
       ['f a', 'Freeze ALL non-pinned tabs', app.roott.freezeAll],
@@ -128,6 +127,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     ]],
   ];
 
+    app.makeHandler = function(func) {
+      return function(e){
+        e.stopPropagation();
+        e.preventDefault();
+        func();
+      };
+    };
+
     app.keyOut={};
     for (var i = 0; i < app.keyMap.length; i++) {
       var sectionRows = app.keyMap[i][2];
@@ -135,7 +142,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         var keyRow = sectionRows[j];
         if(keyRow[2]){
 //          app.keyOut[keyRow[0]] = keyRow[2];
-          Mousetrap.bind(keyRow[0], keyRow[2]);
+//          Mousetrap.bind(keyRow[0], keyRow[2]);
+          var keyHandler = app.makeHandler(keyRow[2]);
+          Mousetrap.bind(keyRow[0], keyHandler);
         }
       }
     }
@@ -149,15 +158,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       app.searchstr = '';
       app.roott.hideAll();
       app.roott.clearSelected();
-      searchBox.blur(); 
+      searchBox.blur();
     };
     searchKey.bind('esc', app.clearSearch);
-    searchKey.bind('return', function(e){ 
-      searchBox.blur(); 
+    searchKey.bind('return', function(e){
+      searchBox.blur();
     });
 
   }; // end loadKeyMap
 
 
 })(document);
-

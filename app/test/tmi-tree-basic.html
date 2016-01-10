@@ -93,7 +93,20 @@
           assert.equal(el.getPointer().id, 'id-3');
           el.setPointer(el.getFirstEl())
           assert.equal(el.getPointer().id, 'id-10');
+          el.setPointerToBottom();
+          assert.equal(el.getPointer().id, 'id-12');
+          el.setPointerToTop();
+          assert.equal(el.getPointer().id, 'id-10');
           done();
+          el.getPointerId('id-3').right();
+          flush(function() {
+            el.setPointerId('id-305')
+            assert.equal(el.getPointer().id, 'id-305');
+            el.setPointerToTop();
+            assert.equal(el.getPointer().id, 'id-301');
+            el.setPointerToBottom();
+            assert.equal(el.getPointer().id, 'id-310');
+          });
         });
       });
 

@@ -13,7 +13,7 @@
       <input type="checkbox" name="winCheck"
              checked="{{selected::input}}">
       <span on-click="movePointer">
-        <template is="dom-if" if="{{!tabfavIconUrl}}">
+        <template is="dom-if" if="{{!tab.favIconUrl}}">
           <iron-icon icon="receipt"
                  style="height: 16px; width: 16px; vertical-align: middle; padding-bottom: 2px">
         </template>
@@ -484,6 +484,9 @@
         getVisibleEls: function(){
           return this.root.querySelectorAll('tmi-window:not([hidden]), tmi-window:not([hidden]) iron-collapse[aria-expanded=true] tmi-tab');
         },
+        getVisibleWinEls: function(){
+          return this.root.querySelectorAll('tmi-window:not([hidden])');
+        },
         flattenWintabs: function(){
           var result = [];
           _.each(this.nodes, function(node){
@@ -507,6 +510,7 @@
           if (! el) {  // use "setPointer()" to make sure something is set
             el = this.getFirstEl();
           }
+          this.scrollToEl(el);
           return this.attributeFollows('pointer', el, oldEl);
 
         },
@@ -515,13 +519,6 @@
           if (newEl) {
             this.setPointer(newEl);
           }
-        },
-        setPointerToCurrentWin: function() {
-          var self = this;
-          Polymer.dom.flush();
-          tmi.chrome.windows.getCurrent(function(win){
-            self.setPointerId(self.makeId(win.id));
-          });
         },
         getPointer: function(){
           var pointer = this.treeQuery('.node[pointer]');
@@ -534,7 +531,7 @@
         getPointerWin: function(){
           var el = this.getPointer();
           if (el.tagName === 'TMI-TAB'){
-            return this.getNode(this.makeId(el.getWinId()));
+            return this.getNode(this.makeId(el.tab.windowId));
           }
           return el;
         },
@@ -545,6 +542,56 @@
             }
           }
           return 0;
+        },
+        setPointerToTop: function() {
+          this.branchPointer({
+            win: function(){
+              var elList = this.getVisibleEls();
+              this.setPointer(elList[0]);
+            },
+            tab: function(){
+              var tabs = this.getPointerWin().win.tabs;
+              this.setPointerId(this.makeId(tabs[0].id));
+            },
+          });
+        },
+        setPointerToBottom: function() {
+          this.branchPointer({
+            win: function(){
+              var elList = this.getVisibleWinEls();
+              this.setPointer(elList[elList.length-1]);
+            },
+            tab: function(){
+              var tabs = this.getPointerWin().win.tabs;
+              this.setPointerId(this.makeId(tabs[tabs.length-1].id));
+            },
+          });
+        },
+        setPointerToCurrentWin: function() {
+          var self = this;
+          Polymer.dom.flush();
+          tmi.chrome.windows.getCurrent(function(win){
+            self.setPointerId(self.makeId(win.id));
+          });
+        },
+        scrollToEl: function(el) {
+          if (!this.scroller) {
+            var mp = document.querySelector('#mainPanel');
+            if (!mp) { return; }
+            this.scroller = mp.scroller;
+          }
+          var rect = el.getBoundingClientRect();
+          var winTop = 0 + 100;
+          var winBottom = window.innerHeight - 60;
+          var diff = 0;
+          if (rect.bottom > winBottom) {
+            diff = rect.bottom - winBottom;
+            this.scroller.scrollTop += diff;
+//            window.scrollBy(0, diff);
+          } else if (rect.top < winTop) {
+            diff = rect.top - winTop;
+            this.scroller.scrollTop += diff;
+          }
         },
 
         /* select stuff */
@@ -619,19 +666,21 @@
           return result;
         },
 
-//TODO: consider 1) el ids (eg "id-1234") 2) closed windows.
-        branchOnNodeType: function(funcs){
-          var self = this;
+        branchPointerWrap: function(funcs){
           return function(){
-            var pointer = self.getPointer();
-//            var type = pointer.getType();
-//            funcs[type](pointer[type].id);
-            if (pointer.tab) {
-              funcs.tab(pointer.tab.id);
-            } else {
-              funcs.win(pointer.win.id);
-            }
-          };
+            this.branchPointer(funcs);
+          }.bind(this);
+        },
+//TODO: consider 1) el ids (eg "id-1234") 2) closed windows.
+        branchPointer: function(funcs){
+          var pointer = this.getPointer();
+//          var type = pointer.getType();
+//          funcs[type](pointer[type].id);
+          if (pointer.tab) {
+            funcs.tab.bind(this, pointer.tab.id)();
+          } else {
+            funcs.win.bind(this, pointer.win.id)();
+          }
         },
 
         //Tree movement
@@ -640,18 +689,20 @@
           Polymer.dom.flush();
           var elList = self.getVisibleEls();
           var i = self.getPointerIndex(elList);
-          elList[i].removeAttribute('pointer');
-//          elList[i+1].setAttribute('pointer', '');
-          elList[(i+1 + elList.length) % elList.length].setAttribute('pointer', '');
+//          elList[i].removeAttribute('pointer');
+//          elList[(i+1 + elList.length) % elList.length].setAttribute('pointer', '');
+          var newPointer = elList[(i+1 + elList.length) % elList.length];
+          this.setPointer(newPointer);
         },
         up: function(){
           var self = this;
           Polymer.dom.flush();
           var elList = self.getVisibleEls();
           var i = self.getPointerIndex(elList);
-          elList[i].removeAttribute('pointer');
-//          elList[i-1].setAttribute('pointer', '');
-          elList[(i-1 + elList.length) % elList.length].setAttribute('pointer', '');
+//          elList[i].removeAttribute('pointer');
+//          elList[(i-1 + elList.length) % elList.length].setAttribute('pointer', '');
+          var newPointer = elList[(i-1 + elList.length) % elList.length];
+          this.setPointer(newPointer);
         },
         right: function(){
           this.getPointerWin().toggle();
@@ -690,7 +741,7 @@
           }
         },
         searchMode: function(e){
-          e.preventDefault();
+//          e.preventDefault();
 //          this.searchBox.focus();
           document.querySelector('#searchBox').focus();
         },

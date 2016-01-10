@@ -43,13 +43,15 @@
 - added icons
 - got rid of iron-selector
 - added tabCount
+--- commit
+- scrolling to pointer
 
 ---- head
 
 ! add a named win to test (and make search work on name)
   ! search: if matches win it should show even if viewTabs.length === 0
 ! decide on right() behavior (point to active?, right again?)
-0 m, scroll, tab count, name wintabs, save/open in bookmarks, css, more in bg,   id naming, refactor(kill initApp, remove extra loads), optimize all,
+0 name wintabs, m, save/open in bookmarks, css, more in bg,   id naming, refactor(kill initApp, remove extra loads), optimize all,
 0 id-# vs. id.  Save LRU tabs.
 ? saving pointer state in nodes.
 - tab count and selected count at top
@@ -62,6 +64,7 @@
 - make generic tree of nodes element
 - numbers goto without pressing '
 - fix and test treeQuery...
+! make g,G work with tabs in search
 
 --- Todo
 - things like istab should be in the model, not just the dom
