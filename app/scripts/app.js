@@ -96,27 +96,27 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 //manage wintabs
     ['docHeader', 'Manage wintabs', [
       ['x', 'select node', app.roott.selectPointer],
-      ['X', 'mark tabs to end of win', app.roott.selectToEnd],
-      ['p', 'paste after point', app.roott.putAfterTab],
-      ['P', 'marked tabs to new window', app.roott.putNewWin],
+      ['X', 'select tabs to end of win', app.roott.selectToEnd],
+      ['p', 'paste selected after pointer', app.roott.putAtPointer],
+      ['P', 'selected to', app.roott.putInNewWin],
       ['n', 'name window', app.roott.nameWin],
       ['w s', 'mark Window to Save', app.roott.toSave],
       ['w c', 'Close Window (keep node)', app.roott.closeWin],
       ['w d', 'Window Delete (for closed)', app.roott.deleteWin],
     ]],
 
-//Freezing
+//Freezing (acts on current rather than pointer)
     ['docHeader', 'Manage wintabs',[
-      ['f', 'Freeze tab/win', app.roott.branchOnNodeType({
+      ['f f', 'Freeze calling tab', app.roott.freezeCurrentTab],
+      ['f p', 'Freeze pointer', app.roott.branchOnNodeType({
            tab: tmi.bg.freezeTab,
            win: tmi.bg.freezeWindow,
          }) 
       ],
-      ['shift+f', 'Freezer all', tmi.bg.freezeAllWindows],
-//      ['F', 'Make Freezer (from closed)', function(){app.roott.makeFreezer();} ],
-      ['f b', 'Freeze to Bookmark', app.roott.bmFreeze],
-      ['f a', 'Freeze All non-pinned wins', app.roott.freezeAll],
-      ['f f', 'Freeze calling tab', app.roott.freezeTab],
+      ['f w', 'Freeze window non-pinned tabs', app.roott.freezeWindow],
+      ['f a', 'Freeze ALL non-pinned tabs', app.roott.freezeAll],
+//      ['f b', 'Freeze to Bookmark', app.roott.bmFreeze],
+//      ['F', 'Make Freezer (from closed)', app.roott.makeFreezer],
     ]],
 
 //Popup manage

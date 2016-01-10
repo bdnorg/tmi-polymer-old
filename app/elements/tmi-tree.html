@@ -3,19 +3,27 @@
 <dom-module id="tmi-tab">
   <style>
     :host {display: block;}
-    :host([pointer]) {background-color: pink;}
+    :host([pointer]) {background-color: lightgreen;}
     .ind {margin-left: 1.5em;
     .clip {white-space: nowrap; overflow: hidden;}
     }
   </style>
   <template>
     <div>
-      <input type="checkbox" name="tabCheck" value="{{tab.id}}">
-      <span>
-         <iron-icon icon="receipt"
-                    style="height: 16px; width: 16px;"></iron-icon>
-      </span>
+      <input type="checkbox" name="winCheck"
+             checked="{{selected::input}}">
+      <span on-click="movePointer">
+        <template is="dom-if" if="{{!tabfavIconUrl}}">
+          <iron-icon icon="receipt"
+                 style="height: 16px; width: 16px; vertical-align: middle; padding-bottom: 2px">
+        </template>
+        <template is="dom-if" if="{{tab.favIconUrl}}">
+            <img src="[[tab.favIconUrl]]"
+                 style="height: 16px; width: 16px; vertical-align: middle; padding-bottom: 2px">
+        </template>
+
       <span>{{tab.title}}</span> - <span>{{tab.id}}</span>
+      </span>
     </div>
   </template>
 </dom-module>
@@ -35,21 +43,41 @@
           reflectToAttribute: true,
           type: String,
         },
+        selected: {
+          type: Boolean,
+          notify: true,
+          value: false,
+        }
       },
       getWinId: function(){
         return this.tab.windowId;
       },
+      select: function() {
+        this.selected = ! this.selected;
+      },
+      movePointer: function() {
+        console.log('clicked!');
+        this.roott.setPointer(this);
+      },
       isTab: true,
-      tab: this.tab
+//      tab: this.tab
     });
   })();
 </script>
 
 <dom-module id="tmi-win-display">
   <template>
-    [<iron-icon icon="receipt"
-                style="height: 16px; width: 16px;"></iron-icon>
-     <span>[[win.tabs.0.title]]</span>]
+     [
+     <template is="dom-if" if="{{!win.tabs.0.favIconUrl}}">
+       <iron-icon icon="receipt"
+              style="height: 16px; width: 16px; vertical-align: middle; padding-bottom: 2px">
+     </template>
+     <template is="dom-if" if="{{win.tabs.0.favIconUrl}}">
+         <img src="[[win.tabs.0.favIconUrl]]"
+              style="height: 16px; width: 16px; vertical-align: middle; padding-bottom: 2px">
+     </template>
+     <span>[[win.tabs.0.title]]</span>
+     ]
   </template>
 </dom-module>
 <script>
@@ -111,13 +139,16 @@
      border: solid white 1px;
    }
    :host([pointer]) {
-     background-color: pink;
-     border: solid red 1px;
+     background-color: lightgreen;
+     border: solid green 1px;
    }
    .collapse-content {
      padding: 5px;
      border: 1px solid #dedede;
-  }
+   }
+   .pointer {
+     background-color: yellow;
+   }
   </style>
   <template>
 <!--
@@ -130,11 +161,15 @@
                    style="height: 16px; width: 16px;"></iron-icon>
       </span>
       <input type="checkbox" name="winCheck"
-             value="{{node.id}}">
-      (<span>{{win.tabs.length}}</span>)
+             checked="{{selected::input}}">
+      <span on-click="movePointer">
+        <span style="display: inline-block; width: 2em;">
+          (<span>{{win.tabs.length}}</span>)
+        </span>
         <span>{{node.name}}</span>
         <tmi-win-display win="{{win}}"></tmi-win-display>
         - <span>{{node.id}}</span>
+      </span>
     </div></div>
     <content></content>
 
@@ -191,8 +226,16 @@
 //        this.$.collapse.toggle();
         this.querySelector('iron-collapse').toggle();
       },
+      select: function() {
+        this.selected = ! this.selected;
+      },
+      movePointer: function() {
+        console.log('clicked!');
+        this.roott.setPointer(this);
+      },
+// TODO move to model
       isTab: false,
-      win: this.win,
+//      win: this.win,
     });
   })();
 </script>
@@ -200,20 +243,19 @@
 <dom-module id="tmi-tree">
   <style>
     .pointer {background-color: pink;}
-    .iron-selected {background: lightgreen;}
-    .ind {margin-left: 1.5em;}
+    .ind {margin-left: 1em;}
     .clip {white-space: nowrap; overflow: hidden;}
   </style>
   <template>
+    Tree
     <div class="ind">
     <iron-collapse id="collapseGroup" class="" opened="true">
     <!--
       <iron-selector id="selector" multi attr-for-selected="id" selectable="tmi-window, tmi-window iron-collapse[aria-expanded=true] tmi-tab">
+      </iron-selector>
     -->
-      <iron-selector id="selector" multi attr-for-selected="id">
 
       <template is="dom-repeat" items="{{nodes}}" as="node">
-
 <!--
         <paper-icon-item>
         <paper-checkbox item-icon></paper-checkbox>
@@ -223,11 +265,11 @@
         </paper-icon-item>
 -->
 
-          <tmi-window node="{{node}}" id="{{node.id}}" 
-                      win="{{node.win}}" 
+          <tmi-window node="{{node}}" id="{{node.id}}"
+                      win="{{node.win}}"
                       hidden$="[[isHidden(node.viewTabs)]]"
                       class="node" roott="{{roott}}">
-            <iron-collapse id="collapse" 
+            <iron-collapse id="collapse"
                            opened$="{{node.opened}}" class="">
               <div class="collapse-content tabBlock ind clip">
                 <template is="dom-repeat" items="{{node.viewTabs}}" as="tab">
@@ -244,7 +286,6 @@
 
       </template>
 
-      </iron-selector>
 
     </iron-collapse>
     </div>
@@ -268,18 +309,33 @@
             type: Boolean,
             notify: true,
             value: false,
-          }
+          },
+          tabcount: {
+            type: Number,
+            notify: true,
+          },
+          frozencount: {
+            type: Number,
+            notify: true,
+          },
         },
         observers: [
-          '_syncWins(newWins)',
+//          '_syncWins(newWins)',
           'searchstrChange(searchstr)',
-        ], 
+          'countTabs(nodes)',
+        ],
         ready: function() {
+          var self = this;
+          tmi.chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
+            console.log('This tab: ', tabs);
+            self.callingTab = tabs[0];
+          });
 //don't set searchBox globally
 //          this.searchBox = document.querySelector('#searchBox');
           this.roott = this;
 
           // Hack iron-selector to work with my tree structure
+/*
           this.$.selector._updateItems = function() {
             console.log('ironSelector._updateItems was called');
           };
@@ -287,50 +343,65 @@
             nodes = Array.prototype.filter.call(nodes, this._bindFilterItem);
             this._setItems(nodes);
           };
+*/
 
           this._initData();
 
           Polymer.dom.flush();
           this.setPointerToCurrentWin();
-          this._updateIronSelect();
 
         },
         created: function() {},
         attached: function() {},
-        nodes: [],
+//        nodes: [],
+        callingTab: {},
 
         makeId: function(id){return 'id-' + id;},
         isHidden: function(vt){ return (!vt || vt.length === 0);},
         _initData:function() {
-          this.nodes = tmi.bg.tree.getNodes();
-          this.$.browser.updateWins();
+//          this.nodes = [];
+
+//          this.$.browser.updateWins();
+          var self = this;
+          tmi.chrome.windows.getAll({populate: true}, function(newWins) {
+            self._syncWins(newWins);
+//            self._updateIronSelect();
+          });
+
         },
+/*
         _updateIronSelect: function(){
           Polymer.dom.flush();
           var allNodes = this.treeQueryAll('.node');
           console.log('ironSelect_update: ', allNodes);
           this.$.selector.newIronSelectorUpdateItems(allNodes);
         },
+*/
 
-        _syncWins: function(newWinsChange) {
-          var newWins = this.newWins;
+        _syncWins: function(newWins) {
+//          var newWins = this.newWins;
           var result = [];
           var newWinsTodo = _.indexBy(newWins, 'id');
+          var savedNodes = tmi.bg.tree.getNodes(); //read saved nodes
 
           //update current nodes
-          _.each(this.nodes, function(node, i){
+          _.each(savedNodes, function(node, i){
             var newWin = newWinsTodo[node.winId];
             if (newWin) { //not deleted
               node.win = newWin;
-              node.viewTabs = _.get(node, 'win.tabs', []);
+              node.viewTabs = newWin.tabs;
               node.opened = false;
               result.push(node);
               delete newWinsTodo[node.winId]; //mark as already added
-            } 
+            }
           });
+
+          // Could add separator for pinned / not
 
           var self = this;
           _.each(newWins, function(win, j){
+//          for (var j = newWins.length; j-- > 0; ) { //reverse order
+//            var win = newWins[j];
             if (newWinsTodo[win.id]) { //not already added above
               var node = {};
               node.id = self.makeId(win.id);
@@ -346,12 +417,25 @@
           return;
         }, //end _syncWins()
 
+        countTabs: function(){
+          var tabCount = 0;
+          var frozenCount = 0;
+          var tabs = this.nodesToTabs(this.nodes);
+          _.each(tabs, function(tab){
+            tabCount++;
+            if (tab.title.substr(0, 3) === 'Fz:' ) {
+              frozenCount++;
+            }
+          });
+          this.set('tabcount', tabCount);
+          this.set('frozencount', frozenCount);
+        },
         searchstrChange: function(searchstr){
           var nodes = this.nodes;
           var searchStr = this.searchstr;
           var self = this;
 
-          if (!searchStr) { 
+          if (!searchStr) {
             _.each(nodes, function(node, i){
               var viewTabs = _.get(node, 'win.tabs', []);
               self.set('nodes.'+i+'.viewTabs', viewTabs);
@@ -400,7 +484,16 @@
         getVisibleEls: function(){
           return this.root.querySelectorAll('tmi-window:not([hidden]), tmi-window:not([hidden]) iron-collapse[aria-expanded=true] tmi-tab');
         },
-        getAllNodes: function(){
+        flattenWintabs: function(){
+          var result = [];
+          _.each(this.nodes, function(node){
+            result.push(node.win);
+            result.concat(node.win.tabs);
+          });
+          return result;
+//          return this.root.querySelectorAll('tmi-window:not([hidden]), tmi-window:not([hidden]) iron-collapse[aria-expanded=true] tmi-tab');
+        },
+        getAllEls: function(){
           return this.root.querySelectorAll('.node');
         },
         toggleSelected: function(el){
@@ -458,10 +551,13 @@
 
         // selecting is a toggle
         selectId: function(id){
-          this.$.selector.select(id);
+          var node = this.treeQuery('#' + id);
+          node.select();
+//          this.$.selector.select(id);
         },
         select: function(node){
-          this.selectId(node.id);
+          node.select();
+//          this.selectId(node.id);
         },
         selectPointer: function(){
           this.select(this.getPointer());
@@ -480,20 +576,31 @@
           }
         },
         getSelectedValues: function(){
-          return this.$.selector.selectedValues;
+          return _.map(this.getSelectedItems(), function(node){
+            return node.id;
+          });
+//          return this.$.selector.selectedValues;
         },
         getSelectedItems: function(){
-          return this.$.selector.selectedItems;
+          return _.where(this.getVisibleEls(), {selected: true});
+//          return this.$.selector.selectedItems;
         },
         getSelectedTabs: function(){
-          var nodes = this.nodesInModleOrder(this.getSelectedItems());
+          var nodes = this.getSelectedItems();
+//          var nodes = this.nodesInModelOrder(this.getSelectedItems());
           return this.nodesToTabs(nodes);
         },
-        clearSelected: function(){
-          this.$.selector.selectedValues = [];
+        getSelectedTabsId: function(){
+          return _.pluck(this.getSelectedTabs(), 'id');
         },
-        nodesInModleOrder: function(nodes){
-          var nodeOrder = this.getAllNodes();
+        clearSelected: function(){
+          _.map(this.getAllEls(), function(el) {
+            el.selected = false;
+          });
+//          this.$.selector.selectedValues = [];
+        },
+        nodesInModelOrder: function(nodes){
+          var nodeOrder = this.getAllEls();
           var nodesMap = _.indexBy(nodes, 'id');
           return _.filter(nodeOrder, function(node){
             return nodesMap[node.id];
@@ -614,7 +721,34 @@
         //manage wintabs
 //        putAfterTab: function(tab){},
 //        putEndOfWin: function(win){},
-        putNew: function(){},
+        putAtPointer: function(){
+          var tabIds = this.getSelectedTabsId();
+          var pointer = this.getPointer();
+          var index, windowId;
+          if (pointer.isTab) {
+            windowId = pointer.tab.windowId;
+            index = pointer.tab.index + 1;
+          } else {
+            windowId = pointer.win.id;
+            index = -1;
+          }
+          chrome.tabs.move(tabIds, {windowId: windowId, index: index});
+//          this.closeTmi();
+        },
+        putInNewWin: function(){
+          var tabs = this.getSelectedTabs();
+          chrome.windows.get(tabs[0].windowId, function(win) {
+            var tabParams={tabId: tabs[0].id,
+                           width: win.width,
+                           height: win.height};
+
+            chrome.windows.create(tabParams, function(newWin){
+              var tabIds = _.pluck(tabs, 'id');
+              chrome.tabs.move(tabIds.slice(1), {windowId: newWin.id, index: -1});
+            });
+          });
+//          this.closeTmi();
+        },
         name: function(){},
         toSave: function(){},
         close: function(){},
@@ -625,6 +759,15 @@
 //        browser.bmFreeze: function(win){},
 //        browser.freezeAll: function(key){},
 //        browser.freezeTab: function(tab){},
+        freezeCurrentTab: function(){
+          tmi.bg.freezeTab(this.callingTab.id);
+        },
+        freezeWindow: function(){
+          tmi.bg.freezeWindow(this.callingTab.windowId);
+        },
+        freezeAllWindows: function(){
+          tmi.bg.freezeAllWindows();
+        },
 
 
         //Popup manage
@@ -648,5 +791,3 @@
 //      }); //end Polymer()
     })();
   </script>
-
-

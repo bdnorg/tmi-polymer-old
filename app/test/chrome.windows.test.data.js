@@ -22,8 +22,8 @@ if (! chrome.extension) {  //not in extension context
         "pinned": false,
         "selected": false,
         "status": "complete",
-        "title": "Title - 101",
-        "url": "http://google.com/#q=101",
+        "title": "Fz:Title - 101",
+        "url": "file:///?tmiFrozen&randName=23256757&frozenIndex=220&url=https%3A%2F%2Fwww.google.com%2F%23q%3D101",
         "width": 1430,
         "windowId": 1
       },
@@ -633,7 +633,7 @@ if (! chrome.extension) {  //not in extension context
       },
       {
         "active": false,
-        "favIconUrl": "https://developers.google.com/web/favicon.ico",
+        "favIconUrl": "",
         "height": 769,
         "highlighted": false,
         "id": 302,
@@ -942,8 +942,8 @@ if (! chrome.extension) {  //not in extension context
       {
         "id": 701,
         "windowId": 7,
-        "url": "http://google.com/#q=701",
-        "title": "Title - 701"
+        "url": "file:///?tmiFrozen&randName=23256757&frozenIndex=220&url=https%3A%2F%2Fwww.google.com%2F%23q%3D701",
+        "title": "Fz:Title - 701",
       },
       {
         "id": 702,
@@ -996,8 +996,8 @@ if (! chrome.extension) {  //not in extension context
       {
         "id": 710,
         "windowId": 7,
-        "url": "http://google.com/#q=710",
-        "title": "Title - 710"
+        "url": "file:///?tmiFrozen&randName=23256757&frozenIndex=220&url=https%3A%2F%2Fwww.google.com%2F%23q%3D710",
+        "title": "Fz:Title - 710",
       },
       {
         "id": 711,

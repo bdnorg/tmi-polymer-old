@@ -32,7 +32,7 @@
 
 
   <!-- chrome.windows.getAll() data in window.testWins -->
-  <!-- 
+  <!--
   <script src="../scripts/chrome.windows.test.data.js"></script>
   -->
 
@@ -101,36 +101,36 @@
         flush(function() {
           //start off with pointer at "current win"
           assert.equal(el.getPointer().id, 'id-6');
-          el.down();  
-          el.up();  
+          el.down();
+          el.up();
           assert.equal(el.getPointer().id, 'id-6');
-          el.right();  
-          el.up();  
+          el.right();
+          el.up();
           assert.equal(el.getPointer().id, 'id-5');
-          el.up();  
-          el.up();  
-          el.up();  
+          el.up();
+          el.up();
+          el.up();
           //saved order was recovered
           assert.equal(el.getPointer().id, 'id-9');
           //wrap around
-          el.up();  
-          el.up();  
-          el.up();  
-          el.up();  
-          el.up();  
+          el.up();
+          el.up();
+          el.up();
+          el.up();
+          el.up();
           assert.equal(el.getPointer().id, 'id-11');
           //check expanding
-          el.right();  
+          el.right();
           flush(function() {
             el.down();
             el.down();
             assert.equal(el.getPointer().id, 'id-1102');
-            el.up();  
-            el.up();  
-            el.up();  
-            el.up();  
-            el.up();  
-            el.up();  
+            el.up();
+            el.up();
+            el.up();
+            el.up();
+            el.up();
+            el.up();
             assert.equal(el.getPointer().id, 'id-604');
             done();
           });
@@ -232,6 +232,14 @@
               done();
             });
           });
+        });
+      });
+
+      test('Cehck tabcount', function(done) {
+        flush(function() {
+          assert.equal(el.tabcount, 593);
+          assert.equal(el.frozencount, 3);
+          done();
         });
       });
 

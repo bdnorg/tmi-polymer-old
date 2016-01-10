@@ -633,7 +633,7 @@ tmi.testWins =
       },
       {
         'active': false,
-        'favIconUrl': 'https://developers.google.com/web/favicon.ico',
+        'favIconUrl': '',
         'height': 769,
         'highlighted': false,
         'id': 595,
