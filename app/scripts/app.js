@@ -74,8 +74,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       ['doc', 'shift+ jk\u25B2\u25BC', 'move x 10'],
 //      ['J', false, app.roott.downTen],
 //      ['K', false, app.roott.upTen],
-      ['g', 'move to top win/tab', app.roott.setPointerToTop],
+      ['J', 'move to bottom win/tab', app.roott.setPointerToBottom],
+      ['K', 'move to top win/tab', app.roott.setPointerToTop],
       ['G', 'move to bottom win/tab', app.roott.setPointerToBottom],
+      ['g', 'move to top win/tab', app.roott.setPointerToTop],
     ]],
 
     //nav wintabs

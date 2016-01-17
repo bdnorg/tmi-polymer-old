@@ -45,13 +45,17 @@
 - added tabCount
 --- commit
 - scrolling to pointer
+--- commit
 
 ---- head
 
-! add a named win to test (and make search work on name)
+# movement + {shift: jump, ctrl: bring tab? select?}.  jump: within level: {top, pin, active, bottom}
+# right: right toggle, agatin to active? right-again: open all? open tab details?
+# up/down only at same level?
+- start on active tab (not win)
+- add a named win to test (and make search work on name)
   ! search: if matches win it should show even if viewTabs.length === 0
-! decide on right() behavior (point to active?, right again?)
-0 name wintabs, m, save/open in bookmarks, css, more in bg,   id naming, refactor(kill initApp, remove extra loads), optimize all,
+0 name wintabs, m, save order, save/open in bookmarks, css, more in bg,   id naming, refactor(kill initApp, remove extra loads), optimize all, generic tree element (ludwig)
 0 id-# vs. id.  Save LRU tabs.
 ? saving pointer state in nodes.
 - tab count and selected count at top
@@ -64,6 +68,7 @@
 - make generic tree of nodes element
 - numbers goto without pressing '
 - fix and test treeQuery...
+- numbers: 1-key goto
 ! make g,G work with tabs in search
 
 --- Todo

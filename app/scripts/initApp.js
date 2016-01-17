@@ -64,7 +64,7 @@ if (chrome.extension) {  //in extension context
       },
     };
     tmi.chrome = {};
-    tmi.chrome.tabs = tmi.makeMocks(['get', 'update', 'query', 'sendMessage', 'create', 'captureVisibleTab']);
+    tmi.chrome.tabs = tmi.makeMocks(['get', 'update', 'sendMessage', 'create', 'captureVisibleTab']);
     tmi.chrome.windows = tmi.makeMocks(['get', 'update', 'getCurrent']);
 
     tmi.testWinsIndex = _.indexBy(tmi.testWins, 'id');
@@ -75,11 +75,12 @@ if (chrome.extension) {  //in extension context
       //should detect number of args
       setTimeout(func(tmi.testWins), 0);
     };
+    tmi.chrome.tabs.query = function(obj, func){
+//      setTimeout(func([tmi.testWinsIndex[6].tabs[1]]), 0);
+      setTimeout(func([tmi.testWinsIndex[12].tabs[22]]), 0);
+    };
   }; // end tmi.testDataCallBack: function(){
 
   tmi.loadScript('../test/chrome.windows.test.data.js', tmi.testDataCallBack);
 
 } //end if (chrome.extension)
-  
-  
-

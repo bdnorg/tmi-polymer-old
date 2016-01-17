@@ -81,14 +81,14 @@
 //          assert.equal(el.treeQuery('#id-901').win.tabs.length, 90);
           assert.equal(el.getNode('id-801').id, 'id-801');
           assert.equal(el.getFirstEl().id, 'id-10');
-          assert.equal(el.getVisibleEls().length, 12);
+          assert.equal(el.getVisibleEls().length, 17);
           done();
         });
       });
 
       test('TODO Check pointer API', function(done) {
         flush(function() {
-          assert.equal(el.getPointer().id, 'id-6');
+          assert.equal(el.getPointer().id, 'id-602');
           el.setPointerId('id-3');
           assert.equal(el.getPointer().id, 'id-3');
           el.setPointer(el.getFirstEl())
@@ -98,26 +98,17 @@
           el.setPointerToTop();
           assert.equal(el.getPointer().id, 'id-10');
           done();
-          el.getPointerId('id-3').right();
-          flush(function() {
-            el.setPointerId('id-305')
-            assert.equal(el.getPointer().id, 'id-305');
-            el.setPointerToTop();
-            assert.equal(el.getPointer().id, 'id-301');
-            el.setPointerToBottom();
-            assert.equal(el.getPointer().id, 'id-310');
-          });
         });
       });
 
       test('Check pointer movement', function(done) {
         flush(function() {
           //start off with pointer at "current win"
-          assert.equal(el.getPointer().id, 'id-6');
+          assert.equal(el.getPointer().id, 'id-602');
           el.down();
           el.up();
-          assert.equal(el.getPointer().id, 'id-6');
-          el.right();
+          assert.equal(el.getPointer().id, 'id-602');
+          el.left();
           el.up();
           assert.equal(el.getPointer().id, 'id-5');
           el.up();
@@ -136,7 +127,6 @@
           el.right();
           flush(function() {
             el.down();
-            el.down();
             assert.equal(el.getPointer().id, 'id-1102');
             el.up();
             el.up();
@@ -145,8 +135,31 @@
             el.up();
             el.up();
             assert.equal(el.getPointer().id, 'id-604');
+            //check goto top/bottom of tabs
+            el.setPointerToTop();
+            assert.equal(el.getPointer().id, 'id-601');
+            el.setPointerToBottom();
+            assert.equal(el.getPointer().id, 'id-605');
+            //check goto top/bottom of wins
+            el.down();
+            el.setPointerToTop();
+            assert.equal(el.getPointer().id, 'id-10');
+            el.setPointerToBottom();
+            assert.equal(el.getPointer().id, 'id-12');
             done();
           });
+        });
+      });
+
+      test('Test tmi-window', function(done) {
+        flush(function() {
+          var winNode = el.getNode('id-5');
+          winNode.toggle();
+          el.up();
+          el.up();
+          el.up();
+          assert.equal(el.getPointer().id, 'id-501');
+          done();
         });
       });
 
@@ -197,7 +210,7 @@
         flush(function() {
           el.selectId('id-3');
           assert.equal(el.getSelectedValues()[0], 'id-3');
-          el.right();
+          el.left();
           el.up();
           el.right();
           flush(function() {

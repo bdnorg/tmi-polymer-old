@@ -138,8 +138,10 @@
      display: block;
      border: solid white 1px;
    }
-   :host([pointer]) {
+   :host([pointer]) div {
      background-color: lightgreen;
+   }
+   :host([pointer]) {
      border: solid green 1px;
    }
    .collapse-content {
@@ -226,6 +228,12 @@
 //        this.$.collapse.toggle();
         this.querySelector('iron-collapse').toggle();
       },
+      show: function() {
+        this.querySelector('iron-collapse').show();
+      },
+      hide: function() {
+        this.querySelector('iron-collapse').hide();
+      },
       select: function() {
         this.selected = ! this.selected;
       },
@@ -291,6 +299,7 @@
     </div>
     <tmi-browser id="browser"
                  new-wins="{{newWins}}"></tmi-browser>
+    End Tree
   </template>
 </dom-module>
   <script>
@@ -324,60 +333,43 @@
           'searchstrChange(searchstr)',
           'countTabs(nodes)',
         ],
-        ready: function() {
+        callingTab: {},
+        roott: this,
+//        nodes: [],
+        created: function() {
           var self = this;
-          tmi.chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
-            console.log('This tab: ', tabs);
-            self.callingTab = tabs[0];
+          tmi.chrome.tabs.query({active: true, currentWindow: true},
+              function(tabs){
+                self.callingTab = tabs[0];
           });
 //don't set searchBox globally
 //          this.searchBox = document.querySelector('#searchBox');
+//          this.roott = this;
+        },
+        ready: function() {
+//          this.set('nodes', this.preLoadNodes);
           this.roott = this;
-
-          // Hack iron-selector to work with my tree structure
-/*
-          this.$.selector._updateItems = function() {
-            console.log('ironSelector._updateItems was called');
-          };
-          this.$.selector.newIronSelectorUpdateItems = function(nodes) {
-            nodes = Array.prototype.filter.call(nodes, this._bindFilterItem);
-            this._setItems(nodes);
-          };
-*/
-
           this._initData();
 
           Polymer.dom.flush();
-          this.setPointerToCurrentWin();
-
         },
-        created: function() {},
         attached: function() {},
 //        nodes: [],
-        callingTab: {},
 
         makeId: function(id){return 'id-' + id;},
         isHidden: function(vt){ return (!vt || vt.length === 0);},
         _initData:function() {
 //          this.nodes = [];
-
 //          this.$.browser.updateWins();
           var self = this;
           tmi.chrome.windows.getAll({populate: true}, function(newWins) {
-            self._syncWins(newWins);
+            self.preLoadNodes = self._syncWins(newWins);
+            self.set('nodes', self.preLoadNodes);
+            self.setPointerToCurrentTab();
 //            self._updateIronSelect();
           });
 
         },
-/*
-        _updateIronSelect: function(){
-          Polymer.dom.flush();
-          var allNodes = this.treeQueryAll('.node');
-          console.log('ironSelect_update: ', allNodes);
-          this.$.selector.newIronSelectorUpdateItems(allNodes);
-        },
-*/
-
         _syncWins: function(newWins) {
 //          var newWins = this.newWins;
           var result = [];
@@ -412,9 +404,8 @@
               result.push(node);
             }
           });
-          this.set('nodes', result);
-          tmi.bg.tree.setNodes(this.nodes); // save nodes in bg
-          return;
+          tmi.bg.tree.setNodes(result); // save nodes in bg
+          return result;
         }, //end _syncWins()
 
         countTabs: function(){
@@ -477,6 +468,7 @@
         },
         getNode: function(id){
           return this.treeQuery('#' + id);
+//          return this.$$('#' + id);
         },
         getFirstEl: function(){
           return this.treeQuery('tmi-window');
@@ -503,6 +495,11 @@
 
         },
 
+        stack: function(arg) {
+          var stack = new Error().stack;
+          console.log('Stack:: ', arg, ': ', stack);
+        },
+
         /* pointer stuff */
 
         setPointer: function(el){
@@ -510,6 +507,7 @@
           if (! el) {  // use "setPointer()" to make sure something is set
             el = this.getFirstEl();
           }
+          Polymer.dom.flush();
           this.scrollToEl(el);
           return this.attributeFollows('pointer', el, oldEl);
 
@@ -530,6 +528,7 @@
         },
         getPointerWin: function(){
           var el = this.getPointer();
+          if (!el) { return; }
           if (el.tagName === 'TMI-TAB'){
             return this.getNode(this.makeId(el.tab.windowId));
           }
@@ -567,12 +566,23 @@
             },
           });
         },
+        setPointerToCurrentTab: function() {
+          var self = this;
+          Polymer.dom.flush();
+          var pw = this.treeQuery('#' + this.makeId(this.callingTab.windowId));
+          if (pw) {
+            pw.show();
+          }
+          this.setPointerId(this.makeId(this.callingTab.id));
+        },
         setPointerToCurrentWin: function() {
           var self = this;
           Polymer.dom.flush();
-          tmi.chrome.windows.getCurrent(function(win){
-            self.setPointerId(self.makeId(win.id));
-          });
+          this.setPointerId(this.makeId(this.callingTab.windowId));
+          return;
+//          tmi.chrome.windows.getCurrent(function(win){
+//            self.setPointerId(self.makeId(win.id));
+//          });
         },
         scrollToEl: function(el) {
           if (!this.scroller) {
@@ -584,14 +594,16 @@
           var winTop = 0 + 100;
           var winBottom = window.innerHeight - 60;
           var diff = 0;
-          if (rect.bottom > winBottom) {
-            diff = rect.bottom - winBottom;
+          Polymer.dom.flush();
+          if (rect.top > winBottom) {
+            diff = rect.top - winBottom;
             this.scroller.scrollTop += diff;
 //            window.scrollBy(0, diff);
           } else if (rect.top < winTop) {
             diff = rect.top - winTop;
             this.scroller.scrollTop += diff;
           }
+          this.stack(diff);
         },
 
         /* select stuff */
@@ -705,10 +717,27 @@
           this.setPointer(newPointer);
         },
         right: function(){
-          this.getPointerWin().toggle();
+//          this.getPointerWin().toggle();
+//          return;
+
+          var pointer = this.getPointer();
+          if (pointer.isTab) { // tab
+          } else { // win
+            pointer.show();
+            this.down();
+//            this.setPointerToActiveTab(pointer);
+          }
         },
         left: function(){
-          this.getPointerWin().toggle();
+//          this.getPointerWin().toggle();
+//          return;
+
+          var pointer = this.getPointer();
+          if (pointer.isTab) {
+            this.setPointerId(this.makeId(pointer.tab.windowId));
+          } else {  //win
+            pointer.hide();
+          }
         },
         downTen: function(){},
         upTen: function(){},
