@@ -2,16 +2,20 @@
 
 <dom-module id="tmi-tab">
   <style>
-    :host {display: block;}
+    :host {display: block; background-color: linen;}
     :host([pointer]) {background-color: lightgreen;}
-    .ind {margin-left: 1.5em;
+    [activetab] {background-color: red;}
+    .ind {margin-left: 2em;
     .clip {white-space: nowrap; overflow: hidden;}
     }
   </style>
   <template>
     <div>
-      <input type="checkbox" name="winCheck"
-             checked="{{selected::input}}">
+      <span id="showpointer" activetab$="[[tab.active]]">
+        &nbsp;
+      </span>
+        <input type="checkbox" name="winCheck"
+               checked="{{selected::input}}">
       <span on-click="movePointer">
         <template is="dom-if" if="{{!tab.favIconUrl}}">
           <iron-icon icon="receipt"
@@ -136,7 +140,7 @@
    .clip {white-space: nowrap; overflow: hidden;}
    :host {
      display: block;
-     border: solid white 1px;
+     border: solid linen 1px;
    }
    :host([pointer]) div {
      background-color: lightgreen;
@@ -168,7 +172,7 @@
         <span style="display: inline-block; width: 2em;">
           (<span>{{win.tabs.length}}</span>)
         </span>
-        <span>{{node.name}}</span>
+        <span><b>{{node.name}}</b></span>
         <tmi-win-display win="{{win}}"></tmi-win-display>
         - <span>{{node.id}}</span>
       </span>
@@ -255,24 +259,53 @@
     .clip {white-space: nowrap; overflow: hidden;}
   </style>
   <template>
-    Tree
-    <div class="ind">
-    <iron-collapse id="collapseGroup" class="" opened="true">
-    <!--
-      <iron-selector id="selector" multi attr-for-selected="id" selectable="tmi-window, tmi-window iron-collapse[aria-expanded=true] tmi-tab">
-      </iron-selector>
-    -->
-
-      <template is="dom-repeat" items="{{nodes}}" as="node">
+    <paper-drawer-panel id="paperDrawerPanel" forceNarrow>
+      <paper-header-panel drawer mode="standard">
+        <!-- Drawer Toolbar -->
 <!--
-        <paper-icon-item>
-        <paper-checkbox item-icon></paper-checkbox>
-        <iron-icon icon="communication:chat"></iron-icon>
-        <div class="flex">
-        </div>
-        </paper-icon-item>
+        <div class="paper-header"> </div>
 -->
+        <paper-toolbar id="drawerToolbar">
+          <iron-icon icon="menu" paper-drawer-toggle></iron-icon>
+          <span class="flex">Menu</span>
+        </paper-toolbar>
 
+        <!-- Drawer Content -->
+        <div class="flex">
+        <tmi-menu id="app-menu"></tmi-menu>
+        </div>
+      </paper-header-panel>
+
+      <paper-header-panel id="mainPanel" main mode="standard">
+
+        <!-- Main Toolbar -->
+        <paper-toolbar id="mainToolbar">
+          <iron-icon icon="menu" paper-drawer-toggle></iron-icon>
+          <span class="flex">
+            <div class="flex appname bottom paper-font-display1">
+              TMI
+            </div>
+          </span>
+            <div class="flex">
+              Tabs: <span>{{tabCount}}</span>
+              <br>
+              Fz: <span>{{frozenCount}}</span>
+            </div>
+            <paper-icon-button icon="search"></paper-icon-button>
+            <input id="searchBox" is="iron-input" size="15"
+                   value="{{searchstr::input}}">
+        </paper-toolbar>
+
+        <!-- Main Content -->
+
+
+
+
+
+    <div class="ind">
+    Top
+    <iron-collapse id="collapseGroup" class="" opened="true">
+      <template is="dom-repeat" items="{{nodes}}" as="node">
           <tmi-window node="{{node}}" id="{{node.id}}"
                       win="{{node.win}}"
                       hidden$="[[isHidden(node.viewTabs)]]"
@@ -290,16 +323,20 @@
               </div>
             </iron-collapse>
           </tmi-window>
-
-
       </template>
 
-
     </iron-collapse>
+    Bottom
     </div>
     <tmi-browser id="browser"
                  new-wins="{{newWins}}"></tmi-browser>
-    End Tree
+
+
+
+      </paper-header-panel>
+    </paper-drawer-panel>
+
+
   </template>
 </dom-module>
   <script>
@@ -308,38 +345,29 @@
       var polymerObj = {
 //      Polymer({
         is: 'tmi-tree',
-        properties: {
-          searchstr: {
-            type: String,
-            notify: true,
-            value: '',
-          },
-          selected: {
-            type: Boolean,
-            notify: true,
-            value: false,
-          },
-          tabcount: {
-            type: Number,
-            notify: true,
-          },
-          frozencount: {
-            type: Number,
-            notify: true,
-          },
-        },
+        properties: {},
         observers: [
 //          '_syncWins(newWins)',
           'searchstrChange(searchstr)',
           'countTabs(nodes)',
         ],
+        listeners: {
+          transitionend: '_transitionEnd'
+        },
+        _transitionEnd: function() {
+          console.log('LC: TRANSITION END');
+          this.scrollToEl(this.getPointer());
+        },
         callingTab: {},
         roott: this,
+        searchstr: '',
 //        nodes: [],
         created: function() {
+          console.log('LC: created');
           var self = this;
           tmi.chrome.tabs.query({active: true, currentWindow: true},
               function(tabs){
+                console.log('LC: created -> tabs.query callingTab');
                 self.callingTab = tabs[0];
           });
 //don't set searchBox globally
@@ -347,31 +375,28 @@
 //          this.roott = this;
         },
         ready: function() {
-//          this.set('nodes', this.preLoadNodes);
+          console.log('LC: ready');
           this.roott = this;
           this._initData();
-
-          Polymer.dom.flush();
+//          app.init();
         },
-        attached: function() {},
-//        nodes: [],
+        attached: function() {
+          console.log('LC: attached');
+        },
 
         makeId: function(id){return 'id-' + id;},
         isHidden: function(vt){ return (!vt || vt.length === 0);},
         _initData:function() {
-//          this.nodes = [];
-//          this.$.browser.updateWins();
           var self = this;
           tmi.chrome.windows.getAll({populate: true}, function(newWins) {
-            self.preLoadNodes = self._syncWins(newWins);
-            self.set('nodes', self.preLoadNodes);
+            console.log('LC: _initData -> windows.getAll');
+            var nodes = self._syncWins(newWins);
+            self.set('nodes', nodes);
             self.setPointerToCurrentTab();
-//            self._updateIronSelect();
           });
 
         },
         _syncWins: function(newWins) {
-//          var newWins = this.newWins;
           var result = [];
           var newWinsTodo = _.indexBy(newWins, 'id');
           var savedNodes = tmi.bg.tree.getNodes(); //read saved nodes
@@ -418,10 +443,11 @@
               frozenCount++;
             }
           });
-          this.set('tabcount', tabCount);
-          this.set('frozencount', frozenCount);
+          this.set('tabCount', tabCount);
+          this.set('frozenCount', frozenCount);
         },
         searchstrChange: function(searchstr){
+          console.log('searchstr: ', searchstr);
           var nodes = this.nodes;
           var searchStr = this.searchstr;
           var self = this;
@@ -461,9 +487,11 @@
 
         //Nodes
         treeQuery: function(query){
+          Polymer.dom.flush();
           return this.$$('tmi-window:not([hidden]) .iron-collapse-opened ' + query + ', ' + query +':not([hidden])');
         },
         treeQueryAll: function(query){
+          Polymer.dom.flush();
           return this.shadowRoot.querySelectorAll('tmi-window:not([hidden]) .iron-collapse-opened ' + query + ', ' + query +':not([hidden])');
         },
         getNode: function(id){
@@ -535,12 +563,29 @@
           return el;
         },
         getPointerIndex: function(elList){
+          var i = _.findIndex(elList, function(el){
+            return el.hasAttribute('pointer');
+          });
+          return i || 0;
+/*
           for (var i = 0; i < elList.length; i++) {
             if (elList[i].hasAttribute('pointer')){
               return i;
             }
           }
           return 0;
+*/
+        },
+        getActiveTab: function(winNode) {
+          var tabs = winNode.win.tabs;
+          var tab = _.find(tabs, function(tab){
+            return tab.active;
+          });
+          if (tab) {
+            return this.getNode(this.makeId(tab.id));
+          } else {
+            return this.getNode(this.makeId(tabs[0].id));
+          }
         },
         setPointerToTop: function() {
           this.branchPointer({
@@ -566,14 +611,23 @@
             },
           });
         },
-        setPointerToCurrentTab: function() {
-          var self = this;
+        setPointerToTabId: function(tabId) {
           Polymer.dom.flush();
-          var pw = this.treeQuery('#' + this.makeId(this.callingTab.windowId));
+          this.setPointerToTab(
+            this.treeQuery('#' + tabId)
+          );
+        },
+        setPointerToTab: function(node) {
+          var pw = this.treeQuery('#' + this.makeId(node.tab.windowId));
           if (pw) {
             pw.show();
+            this.setPointer(node);
           }
-          this.setPointerId(this.makeId(this.callingTab.id));
+        },
+        setPointerToCurrentTab: function() {
+          this.setPointerToTabId(
+            this.makeId(this.callingTab.id)
+          );
         },
         setPointerToCurrentWin: function() {
           var self = this;
@@ -586,10 +640,12 @@
         },
         scrollToEl: function(el) {
           if (!this.scroller) {
-            var mp = document.querySelector('#mainPanel');
+//            var mp = document.querySelector('#mainPanel');
+            var mp = this.$$('#mainPanel');
             if (!mp) { return; }
             this.scroller = mp.scroller;
           }
+          if (!el) { return; }
           var rect = el.getBoundingClientRect();
           var winTop = 0 + 100;
           var winBottom = window.innerHeight - 60;
@@ -603,7 +659,7 @@
             diff = rect.top - winTop;
             this.scroller.scrollTop += diff;
           }
-          this.stack(diff);
+          console.log('scrollToEl: ', winBottom, diff, el, rect);
         },
 
         /* select stuff */
@@ -696,36 +752,38 @@
         },
 
         //Tree movement
-        down: function(){
-          var self = this;
+        moveUpDownBy: function(incr) {
           Polymer.dom.flush();
-          var elList = self.getVisibleEls();
-          var i = self.getPointerIndex(elList);
-//          elList[i].removeAttribute('pointer');
-//          elList[(i+1 + elList.length) % elList.length].setAttribute('pointer', '');
-          var newPointer = elList[(i+1 + elList.length) % elList.length];
+          var elList;
+          var pointer = this.getPointer();
+          if (pointer.isTab) { //tab
+            elList = this.getVisibleEls();
+          } else { //win
+            elList = this.getVisibleWinEls();
+          }
+          var i = this.getPointerIndex(elList);
+          var newPointer = elList[(i + incr + elList.length) % elList.length];
           this.setPointer(newPointer);
         },
-        up: function(){
-          var self = this;
-          Polymer.dom.flush();
-          var elList = self.getVisibleEls();
-          var i = self.getPointerIndex(elList);
-//          elList[i].removeAttribute('pointer');
-//          elList[(i-1 + elList.length) % elList.length].setAttribute('pointer', '');
-          var newPointer = elList[(i-1 + elList.length) % elList.length];
-          this.setPointer(newPointer);
+        down: function() {
+          this.moveUpDownBy(1);
         },
-        right: function(){
-//          this.getPointerWin().toggle();
-//          return;
-
+        up: function() {
+          this.moveUpDownBy(-1);
+        },
+        downTen: function(){
+          this.moveUpDownBy(10);
+        },
+        upTen: function(){
+          this.moveUpDownBy(-10);
+        },
+        moveTop: function(){},
+        moveBottom: function(){},
+        right: function() {
           var pointer = this.getPointer();
           if (pointer.isTab) { // tab
           } else { // win
-            pointer.show();
-            this.down();
-//            this.setPointerToActiveTab(pointer);
+            this.setPointerToTab(this.getActiveTab(pointer));
           }
         },
         left: function(){
@@ -739,10 +797,6 @@
             pointer.hide();
           }
         },
-        downTen: function(){},
-        upTen: function(){},
-        moveTop: function(){},
-        moveBottom: function(){},
 
         //nav wintabs
 //        browser.focusWin: function(win){},
@@ -750,8 +804,6 @@
         pin: function(){
           var pointerId = this.getPointerWin().id;
           var i = _.findIndex(this.nodes, {id: pointerId});
-//          var elList = this.getVisibleEls();
-//          var i = this.getPointerIndex(elList);
           var moved = this.nodes[i];
           this.splice('nodes', i, 1);
           this.unshift('nodes', moved);
@@ -772,7 +824,7 @@
         searchMode: function(e){
 //          e.preventDefault();
 //          this.searchBox.focus();
-          document.querySelector('#searchBox').focus();
+          this.$$('#searchBox').focus();
         },
         getNodeFromMark: function(mark){
           var elList = this.getVisibleEls();
@@ -832,6 +884,9 @@
         name: function(){},
         toSave: function(){},
         close: function(){},
+        bookmarkCloseWin: function(){
+          tmi.bg.browser.bookmarkWinAndClose(this.getPointerWin());
+        },
 //        delete: function(){},
 
         //Freezing

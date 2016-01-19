@@ -46,57 +46,51 @@
 --- commit
 - scrolling to pointer
 --- commit
+- Start on current tab
+--- commit
+- changed up/down movement to be in same level
+- implemented bookmark and close
 
 ---- head
 
-# movement + {shift: jump, ctrl: bring tab? select?}.  jump: within level: {top, pin, active, bottom}
-# right: right toggle, agatin to active? right-again: open all? open tab details?
-# up/down only at same level?
-- start on active tab (not win)
-- add a named win to test (and make search work on name)
-  ! search: if matches win it should show even if viewTabs.length === 0
-0 name wintabs, m, save order, save/open in bookmarks, css, more in bg,   id naming, refactor(kill initApp, remove extra loads), optimize all, generic tree element (ludwig)
-0 id-# vs. id.  Save LRU tabs.
-? saving pointer state in nodes.
-- tab count and selected count at top
-- make bg work outside extension (with the mocks). (no global functions)
-- global moch for chrome.*
-- two copies of app.js in dist
-? move initApp into tmi-browser?
-- don't load extra stuff(unused elements, mocks, duplicate in vulcanized)
-- reverse order of unpinned wins.
-- make generic tree of nodes element
-- numbers goto without pressing '
-- fix and test treeQuery...
-- numbers: 1-key goto
-! make g,G work with tabs in search
-
 --- Todo
-- things like istab should be in the model, not just the dom
-+ tmi-browser component: update from real tabs
-- storage: data model, link stored to real, use bookmarks
-- mark: fix singlequote key event, implement getOneKey()
-- name: get input working
-- search: filter
-- create pinned section, get rid of ::shadow queries
-- keys: data scructure, broken{? / ...}, wrappers, multikey sequences, different trees, make help/keys an element
-- menu: toolbar too big, FOUC, onclicks work,
-- pointer: initial pointer. point to collections(pin, closed)
+! right in search. test.
+0 fix movement
+0 m, open bookmarks, save/restore order, names,
+0 css, more in bg, refactor(kill initApp, remove extra loads), optimize all,
+3 generic tree element (ludwig)
+- id-# vs. id.
+- Save LRU tabs. superstars.
+2 move app.js to elements. get rid of initApp.
+0 movement + {shift: jump, ctrl: bring tab? select?}.  jump: within level: {top, pin, active, bottom}
+  # right: right toggle, again to active? right-again: jump to top/bottom/active? open all? open tab details?
+  # up/down only at same level?
+- names: input, search(test), save
+! search: if matches win it should show even if viewTabs.length === 0
+- make sure not running polyfill (see WebComponentsReady)
+- selected count at top
+1 two copies of app.js in dist
+2 move initApp into tmi-browser?
+1 don't load extra stuff(unused elements, mocks, duplicate in vulcanized)
+- pin: show which wins are pinned. reverse order of unpinned wins.
+3 make generic tree of nodes element
+0 numbers goto without pressing '
+- fix and test treeQuery...
+1 esc -> start over (clear search and begin at tab even when not in search mode)
+1 make menu work
+1 close popup after changing wintabs state
+3 things like istab/type should be in the model, not just the dom
 
+- keys: multiple trees, make menu/keys an element
+- collections(pin, closed)
 - styles: global, make pretty, fix in gulp->extension
 - gulp: clean up, minify, uglify,
-- extension: clean manifest.
+2 extension: clean manifest.
 - dynamic docs
 - labels
 - auto close
 
 --- Issues
-- why does this make nodes become undefined?
-    <template is="dom-repeat" items="{{nodes}}" as="node">
-
-- want observers.  this.set('coll.key.feild', value). key should be a variable,not a hardcoded string
 - want deep selector: like to walk a tree
   - or stamp more into element's light dom but still get polymer's binding goodness
-- querySelector doesn't work on id's beginning w/ number
-- want object observer: observing a path(e.g. user.manager) requires set
 - get parentElement across shadow boundaries.

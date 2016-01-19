@@ -51,8 +51,8 @@ if (chrome.extension) {  //in extension context
         {id: 'id-deleted', winId: 999999, hash: 1},  // should get deleted
         {id: 'id-10', winId: 10, hash: 0},
         {id: 'id-1', winId: 1, hash: 0, state: 'save'},
-        {id: 'id-2', winId: 2, hash: 0},
-        {id: 'id-9', winId: 9, hash: 0},
+        {id: 'id-2', winId: 2, hash: 0, name: 'Name id-2'},
+        {id: 'id-9', winId: 9, hash: 0, name: 'Name id-9'},
         {id: 'id-3', winId: 3, hash: 0},
       ],
 
@@ -76,8 +76,8 @@ if (chrome.extension) {  //in extension context
       setTimeout(func(tmi.testWins), 0);
     };
     tmi.chrome.tabs.query = function(obj, func){
-//      setTimeout(func([tmi.testWinsIndex[6].tabs[1]]), 0);
-      setTimeout(func([tmi.testWinsIndex[12].tabs[22]]), 0);
+      setTimeout(func([tmi.testWinsIndex[6].tabs[1]]), 0);
+//      setTimeout(func([tmi.testWinsIndex[12].tabs[42]]), 0);
     };
   }; // end tmi.testDataCallBack: function(){
 

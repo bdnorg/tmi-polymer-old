@@ -12,7 +12,7 @@ if (! chrome.extension) {  //not in extension context
     "state": "normal",
     "tabs": [
       {
-        "active": false,
+        "active": true,
         "favIconUrl": "https://www.google.com/favicon.ico",
         "height": 769,
         "highlighted": false,
@@ -251,7 +251,7 @@ if (! chrome.extension) {  //not in extension context
     "state": "normal",
     "tabs": [
       {
-        "active": true,
+        "active": false,
         "favIconUrl": "https://www.google.com/a/google.com/images/favicon.ico",
         "height": 769,
         "highlighted": true,
@@ -267,7 +267,7 @@ if (! chrome.extension) {  //not in extension context
         "windowId": 2
       },
       {
-        "active": false,
+        "active": true,
         "favIconUrl": "https://calendar.google.com/googlecalendar/images/favicon_v2014_7.ico",
         "height": 769,
         "highlighted": false,
@@ -616,7 +616,7 @@ if (! chrome.extension) {  //not in extension context
     "state": "normal",
     "tabs": [
       {
-        "active": true,
+        "active": false,
         "favIconUrl": "https://www.google.com/favicon.ico",
         "height": 769,
         "highlighted": true,
@@ -648,7 +648,7 @@ if (! chrome.extension) {  //not in extension context
         "windowId": 3
       },
       {
-        "active": false,
+        "active": true,
         "favIconUrl": "https://www.google.com/favicon.ico",
         "height": 769,
         "highlighted": false,
@@ -791,7 +791,7 @@ if (! chrome.extension) {  //not in extension context
     "state": "normal",
     "tabs": [
       {
-        "active": true,
+        "active": false,
         "favIconUrl": "",
         "height": 700,
         "highlighted": true,
@@ -821,7 +821,7 @@ if (! chrome.extension) {  //not in extension context
     "state": "normal",
     "tabs": [
       {
-        "active": true,
+        "active": false,
         "favIconUrl": "https://www.google.com/favicon.ico",
         "height": 749,
         "highlighted": true,
@@ -851,7 +851,7 @@ if (! chrome.extension) {  //not in extension context
     "state": "normal",
     "tabs": [
       {
-        "active": true,
+        "active": false,
         "favIconUrl": "https://www.google.com/favicon.ico",
         "height": 769,
         "highlighted": true,
@@ -867,7 +867,7 @@ if (! chrome.extension) {  //not in extension context
         "windowId": 6
       },
       {
-        "active": false,
+        "active": true,
         "favIconUrl": "https://www.google.com/images/icons/product/chrome-32.png",
         "height": 769,
         "highlighted": false,
@@ -976,6 +976,7 @@ if (! chrome.extension) {  //not in extension context
         "title": "Title - 706"
       },
       {
+        "active": true,
         "id": 707,
         "windowId": 7,
         "url": "http://google.com/#q=707",
@@ -1528,6 +1529,7 @@ if (! chrome.extension) {  //not in extension context
         "title": "Title - 807"
       },
       {
+        "active": true,
         "id": 808,
         "windowId": 8,
         "url": "http://google.com/#q=808",
@@ -2080,6 +2082,7 @@ if (! chrome.extension) {  //not in extension context
         "title": "Title - 908"
       },
       {
+        "active": true,
         "id": 909,
         "windowId": 9,
         "url": "http://google.com/#q=909",
@@ -2632,6 +2635,7 @@ if (! chrome.extension) {  //not in extension context
         "title": "Title - 1009"
       },
       {
+        "active": true,
         "id": 1010,
         "windowId": 10,
         "url": "http://google.com/#q=1010",
@@ -3184,6 +3188,7 @@ if (! chrome.extension) {  //not in extension context
         "title": "Title - 1110"
       },
       {
+        "active": true,
         "id": 1111,
         "windowId": 11,
         "url": "http://google.com/#q=1111",
@@ -3868,6 +3873,7 @@ if (! chrome.extension) {  //not in extension context
         "title": "Title - 1233"
       },
       {
+        "active": true,
         "id": 1234,
         "windowId": 12,
         "url": "http://google.com/#q=1234",

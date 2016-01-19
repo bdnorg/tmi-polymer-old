@@ -14,41 +14,59 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   // and give it some initial binding values
   // Learn more about auto-binding templates at http://goo.gl/Dx1u2g
   var app = document.querySelector('#app');
+  var roott = document.querySelector('#app');
+  console.log('LC: app.js');
 
-
+  window.onload = function() {
+    console.log('LC: window.onload event');
+  };
+  document.addEventListener('DOMContentLoaded', function(event) {
+    console.log('LC: DOMContentLoaded event');
+  });
   // Listen for template bound event to know when bindings
   // have resolved and content has been stamped to the page
-  app.addEventListener('dom-change', function() {
-    console.log('Our app is ready to rock!');
-    app.roott = document.querySelector('#main-tree');
-    app.roott = document.querySelector('#main-tree');
+//  app.addEventListener('dom-change', function() {
+//    console.log('LC: dom-change event');
+//  });
+  app.init = function() {
+    console.log('App ready!');
+//    app.roott = document.querySelector('#main-tree');
+    app.roott = document.querySelector('#app');
 // bindAll fixes this for functions in keyMap.
     _.bindAll(app.roott, app.roott.methodNames);
     app.loadKeyMap();
 
     //for debugging
     window.roott = app.roott;
-  });
+  };
 
   // See https://github.com/Polymer/polymer/issues/1381
   window.addEventListener('WebComponentsReady', function() {
+    console.log('LC: WebComponentsReady event');
+
+    Polymer.dom.flush();
+    app.scrollToEl(app.getPointer());
+      app.scrollToEl(app.getPointer());
     document.querySelector('body').removeAttribute('unresolved');
 
     // Ensure the drawer is hidden on desktop/tablet
-    var drawerPanel = document.querySelector('#paperDrawerPanel');
+//    var drawerPanel = document.querySelector('#paperDrawerPanel');
+    var drawerPanel = roott.$$('#paperDrawerPanel');
     drawerPanel.forceNarrow = true;
   });
 
   // Close drawer after menu item is selected if drawerPanel is narrow
   app.onMenuSelect = function() {
-    var drawerPanel = document.querySelector('#paperDrawerPanel');
+//    var drawerPanel = document.querySelector('#paperDrawerPanel');
+    var drawerPanel = app.$$('#paperDrawerPanel');
     if (drawerPanel.narrow) {
       drawerPanel.closeDrawer();
     }
   };
 
   app.showHelp = function(){
-   document.querySelector('paper-drawer-panel').togglePanel();
+//   document.querySelector('paper-drawer-panel').togglePanel();
+   app.$$('paper-drawer-panel').togglePanel();
   };
 
   // Scroll page to top and expand header
@@ -65,19 +83,26 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     //tree movement
     ['docHeader', 'Tree movement', [
       ['jkhl \u2190\u2191\u2192\u2193', 'movement', false],
-      ['jkhl \u25C0\u25B2\u25BA\u25BC', 'movement', false],
+//      ['jkhl \u25C0\u25B2\u25BA\u25BC', 'movement', false],
 // _bindAll allows this.  Just bindAll the arg to Polymer() ?
       ['j', false, app.roott.down ],
+      ['down', false, app.roott.down ],
       ['k', false, app.roott.up],
+      ['up', false, app.roott.up],
       ['h', false, app.roott.left],
+      ['left', false, app.roott.left],
       ['l', false, app.roott.right],
-      ['doc', 'shift+ jk\u25B2\u25BC', 'move x 10'],
+      ['right', false, app.roott.right],
+      ['shift+up/down', 'move bottom/top', false],
+      ['G/g', 'move to bottom/top', false],
 //      ['J', false, app.roott.downTen],
 //      ['K', false, app.roott.upTen],
-      ['J', 'move to bottom win/tab', app.roott.setPointerToBottom],
-      ['K', 'move to top win/tab', app.roott.setPointerToTop],
-      ['G', 'move to bottom win/tab', app.roott.setPointerToBottom],
-      ['g', 'move to top win/tab', app.roott.setPointerToTop],
+      ['J', false, app.roott.setPointerToBottom],
+      ['shift+down', false, app.roott.setPointerToBottom],
+      ['K', false, app.roott.setPointerToTop],
+      ['shift+up', false, app.roott.setPointerToTop],
+      ['G', false, app.roott.setPointerToBottom],
+      ['g', false, app.roott.setPointerToTop],
     ]],
 
     //nav wintabs
@@ -89,7 +114,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       ],
       ['o', '(un)pin window', app.roott.pin],
       ['/', 'search', function(e){app.roott.searchMode(e);} ],
-      ['esc', 'search', function(e){app.clearSearch(e);} ],
+      ['esc', 'clear Search', function(e){app.clearSearch(e);} ],
       ['\'', 'goto tag', app.roott.goMark],
       ['m', 'mark tag', app.roott.mark],
     ]],
@@ -99,11 +124,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       ['x', 'select node', app.roott.selectPointer],
       ['X', 'select tabs to end of win', app.roott.selectToEnd],
       ['p', 'paste selected after pointer', app.roott.putAtPointer],
-      ['P', 'selected to', app.roott.putInNewWin],
+      ['P', 'selected to new win', app.roott.putInNewWin],
       ['n', 'name window', app.roott.nameWin],
-      ['w s', 'mark Window to Save', app.roott.toSave],
-      ['w c', 'Close Window (keep node)', app.roott.closeWin],
-      ['w d', 'Window Delete (for closed)', app.roott.deleteWin],
+      ['w b', 'Bookmark and close Window', app.roott.bookmarkCloseWin],
+//      ['w s', 'mark Window to Save', app.roott.toSave],
+//      ['w c', 'Close Window (keep node)', app.roott.closeWin],
+//      ['w d', 'Window Delete (for closed)', app.roott.deleteWin],
     ]],
 
 //Freezing (acts on current rather than pointer)
@@ -114,18 +140,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
            win: tmi.bg.freezeWindow,
          })
       ],
-      ['f w', 'Freeze window non-pinned tabs', app.roott.freezeWindow],
-      ['f a', 'Freeze ALL non-pinned tabs', app.roott.freezeAll],
+      ['f w', 'Freeze win (non-pinned)', app.roott.freezeWindow],
+      ['f a', 'Freeze ALL (non-pinned)', app.roott.freezeAll],
 //      ['f b', 'Freeze to Bookmark', app.roott.bmFreeze],
 //      ['F', 'Make Freezer (from closed)', app.roott.makeFreezer],
     ]],
 
 //Popup manage
     ['docHeader', 'Manage popup', [
-      ['?', 'Show menu', app.showHelp],
-      ['q', 'close TMI', app.roott.closeTmi],
-      ['r', 'Refresh', app.roott.refreshTmi],
-      ['T', 'break point (for testing)', app.roott.doBreakPoint],
+      ['?', 'toggle menu', app.showHelp],
+      ['alt-a', 'toggle popup', app.roott.closeTmi],
+//      ['r', 'Refresh', app.roott.refreshTmi],
+//      ['T', 'break point (for testing)', app.roott.doBreakPoint],
     ]],
   ];
 
@@ -151,9 +177,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
     }
 
-    var menu = document.querySelector('tmi-menu');
+//    var menu = document.querySelector('tmi-menu');
+    var menu = roott.$$('tmi-menu');
     menu.keyMap = app.keyMap;
-    var searchBox = document.querySelector('#searchBox');
+//    var searchBox = document.querySelector('#searchBox');
+    var searchBox = app.$$('#searchBox');
     var searchKey = new Mousetrap(searchBox);
     app.clearSearch = function(e){
       e.preventDefault();
@@ -170,4 +198,5 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   }; // end loadKeyMap
 
 
+  app.init();
 })(document);

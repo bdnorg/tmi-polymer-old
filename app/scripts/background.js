@@ -26,6 +26,39 @@ var browser = {
       });
     });
   },
+  tmiBookMarkRootId: '467',
+  _genWinTitle: function(winNode) {
+    var result = '('+ winNode.win.tabs.length +')';
+    result += winNode.name || ' ';
+    result += '['+ winNode.win.tabs[0].title +']';
+    return result;
+  },
+  _bookmarkTabsRecurse: function(parentId, tabs, callback) {
+    var tab = tabs.shift();
+    var bm = {
+      parentId: parentId,
+      title: tab.title,
+      url: tab.url,
+    };
+    if (tabs.length > 0) {
+      chrome.bookmarks.create(bm ,function(){
+        browser._bookmarkTabsRecurse(parentId, tabs, callback);
+      });
+    } else {
+      chrome.bookmarks.create(bm, function(){ callback(); });
+    }
+  },
+  bookmarkWinAndClose: function(winNode) {
+    var bmFolder = {
+      parentId: browser.tmiBookMarkRootId,
+      title: browser._genWinTitle(winNode)
+    };
+    chrome.bookmarks.create(bmFolder, function(folder) {
+      browser._bookmarkTabsRecurse(folder.id, winNode.win.tabs, function(){
+        chrome.windows.remove(winNode.win.id);
+      });
+    });
+  },
 }; //end browser {}
 
 var tree = {};

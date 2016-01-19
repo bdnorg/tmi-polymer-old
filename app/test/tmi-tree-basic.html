@@ -65,12 +65,16 @@
         });
       });
 
-      test('Check first line', function(done) {
+      test('Check initial menu state', function(done) {
         flush(function() {
+          // Check first line
           var firstLine = el.$$('tmi-window').win.tabs[0].title;
           assert.equal(firstLine, "Title - 1001");
           var deepFirstLine = el.$$('tmi-window').$$('tmi-win-display').$$('span').innerText
           assert.equal(deepFirstLine, "Title - 1001");
+          // Check default pointer
+          assert.equal(el.getPointer().id, 'id-602');
+          assert.equal(el.getVisibleEls().length, 17);
           done();
         });
       });
@@ -81,7 +85,6 @@
 //          assert.equal(el.treeQuery('#id-901').win.tabs.length, 90);
           assert.equal(el.getNode('id-801').id, 'id-801');
           assert.equal(el.getFirstEl().id, 'id-10');
-          assert.equal(el.getVisibleEls().length, 17);
           done();
         });
       });
@@ -103,7 +106,9 @@
 
       test('Check pointer movement', function(done) {
         flush(function() {
-          //start off with pointer at "current win"
+          el.hideAll();
+          el.setPointerId('id-6');
+          el.right();
           assert.equal(el.getPointer().id, 'id-602');
           el.down();
           el.up();
@@ -127,13 +132,14 @@
           el.right();
           flush(function() {
             el.down();
-            assert.equal(el.getPointer().id, 'id-1102');
+            assert.equal(el.getPointer().id, 'id-1112');
+            el.left();
             el.up();
             el.up();
             el.up();
-            el.up();
-            el.up();
-            el.up();
+            el.right();
+            el.down();
+            el.down();
             assert.equal(el.getPointer().id, 'id-604');
             //check goto top/bottom of tabs
             el.setPointerToTop();
@@ -153,12 +159,11 @@
 
       test('Test tmi-window', function(done) {
         flush(function() {
-          var winNode = el.getNode('id-5');
+          el.hideAll();
+          assert.equal(el.getVisibleEls().length, 12);
+          var winNode = el.getNode('id-3');
           winNode.toggle();
-          el.up();
-          el.up();
-          el.up();
-          assert.equal(el.getPointer().id, 'id-501');
+          assert.equal(el.getVisibleEls().length, 22);
           done();
         });
       });
@@ -182,11 +187,7 @@
               //match both
               el.searchstr='123';
               flush(function() {
-                //check movement in search results
-                el.down();
-                assert.equal(el.getPointer().id, 'id-12');
-                el.down();
-                assert.equal(el.getPointer().id, 'id-1230');
+                assert.equal(el.getVisibleEls().length, 13);
                 //broaden search
                 el.searchstr='12';
                 flush(function() {
@@ -206,13 +207,26 @@
           });
         });
       });
+
+      test('Check movement in search', function(done) {
+        el.searchstr='123';
+        flush(function() {
+          assert.equal(el.getVisibleEls().length, 13);
+          el.down();
+          assert.equal(el.getPointer().id, 'id-12');
+          el.right();
+          assert.equal(el.getPointer().id, 'id-1234');
+          done();
+        });
+      });
+
       test('Check select', function(done) {
         flush(function() {
+          el.hideAll();
           el.selectId('id-3');
           assert.equal(el.getSelectedValues()[0], 'id-3');
-          el.left();
-          el.up();
-          el.right();
+          el.getNode('id-5').toggle();
+          el.getNode('id-6').toggle();
           flush(function() {
             //select tabs
             el.selectId('id-501');
@@ -230,10 +244,7 @@
             //pointer select
             el.setPointerId('id-5');
             el.selectPointer();
-            el.down();
-            el.down();
-            el.down();
-            el.down();
+            el.setPointerId('id-602');
             el.selectPointer();
             flush(function() {
               assert.equal(el.getSelectedValues().length, 2);
@@ -263,8 +274,8 @@
 
       test('Cehck tabcount', function(done) {
         flush(function() {
-          assert.equal(el.tabcount, 593);
-          assert.equal(el.frozencount, 3);
+          assert.equal(el.tabCount, 593);
+          assert.equal(el.frozenCount, 3);
           done();
         });
       });
