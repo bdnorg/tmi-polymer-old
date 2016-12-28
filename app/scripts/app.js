@@ -107,16 +107,24 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     //nav wintabs
     ['docHeader', 'Nav wintabs', [
-      ['enter', 'focus / open', app.roott.branchPointerWrap({
-           tab: tmi.bg.browser.selectOpenTabId,
-           win: tmi.bg.browser.focusOpenWindow,
-         })
-      ],
+      ['enter', 'focus / open', app.roott.focusPointer],
       ['o', '(un)pin window', app.roott.pin],
       ['/', 'search', function(e){app.roott.searchMode(e);} ],
       ['esc', 'clear Search', function(e){app.clearSearch(e);} ],
-      ['\'', 'goto tag', app.roott.goMark],
       ['m', 'mark tag', app.roott.mark],
+      ['\'', 'goto tag', app.roott.goMark],
+      ['m DEL', 'delete tag', false],
+      ['0-9', 'fast goto', false],
+      ['1', false, function() {app.roott.focusMark('1');} ],
+      ['2', false, function() {app.roott.focusMark('2');} ],
+      ['3', false, function() {app.roott.focusMark('3');} ],
+      ['4', false, function() {app.roott.focusMark('4');} ],
+      ['5', false, function() {app.roott.focusMark('5');} ],
+      ['6', false, function() {app.roott.focusMark('6');} ],
+      ['7', false, function() {app.roott.focusMark('7');} ],
+      ['8', false, function() {app.roott.focusMark('8');} ],
+      ['9', false, function() {app.roott.focusMark('9');} ],
+      ['0', false, function() {app.roott.focusMark('0');} ],
     ]],
 
 //manage wintabs

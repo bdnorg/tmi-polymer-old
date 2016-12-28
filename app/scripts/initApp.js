@@ -18,7 +18,6 @@ tmi.loadScript = function(url, callback) {
     head.appendChild(script);
 };
 
-
 if (chrome.extension) {  //in extension context
   tmi.bg = chrome.extension.getBackgroundPage();
   tmi.chrome = {};
@@ -61,6 +60,13 @@ if (chrome.extension) {  //in extension context
       },
       setNodes: function(nodes){
         tmi.bg.tree.nodes = nodes;
+      },
+      marks: {'id-3': 'z', 'id-604': '4'},
+      getMarks: function(){
+        return tmi.bg.tree.marks;
+      },
+      setMarks: function(marks){
+        tmi.bg.tree.marks = marks;
       },
     };
     tmi.chrome = {};

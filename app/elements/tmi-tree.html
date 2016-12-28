@@ -5,7 +5,7 @@
     :host {display: block; background-color: linen;}
     :host([pointer]) {background-color: lightgreen;}
     [activetab] {background-color: red;}
-    .ind {margin-left: 2em;
+    .ind {margin-left: 2em;}
     .clip {white-space: nowrap; overflow: hidden;}
     }
   </style>
@@ -287,9 +287,11 @@
             </div>
           </span>
             <div class="flex">
-              Tabs: <span>{{tabCount}}</span>
-              <br>
-              Fz: <span>{{frozenCount}}</span>
+              <small>
+                Tabs: <span>{{tabCount}}</span>
+                (Fz: <span>{{frozenCount}}</span>)<br>
+                <span>{{state}}</span><br>
+            </small>
             </div>
             <paper-icon-button icon="search"></paper-icon-button>
             <input id="searchBox" is="iron-input" size="15"
@@ -297,9 +299,6 @@
         </paper-toolbar>
 
         <!-- Main Content -->
-
-
-
 
 
     <div class="ind">
@@ -347,7 +346,7 @@
         is: 'tmi-tree',
         properties: {},
         observers: [
-//          '_syncWins(newWins)',
+          //'_syncWins(newWins)',
           'searchstrChange(searchstr)',
           'countTabs(nodes)',
         ],
@@ -361,7 +360,9 @@
         callingTab: {},
         roott: this,
         searchstr: '',
-//        nodes: [],
+        state: '',
+        marks: {},
+        //nodes: [],
         created: function() {
           console.log('LC: created');
           var self = this;
@@ -370,15 +371,16 @@
                 console.log('LC: created -> tabs.query callingTab');
                 self.callingTab = tabs[0];
           });
-//don't set searchBox globally
-//          this.searchBox = document.querySelector('#searchBox');
-//          this.roott = this;
+          //don't set searchBox globally
+          //this.searchBox = document.querySelector('#searchBox');
+          //this.roott = this;
         },
         ready: function() {
           console.log('LC: ready');
+          this.marks = {};
           this.roott = this;
           this._initData();
-//          app.init();
+          //app.init();
         },
         attached: function() {
           console.log('LC: attached');
@@ -392,9 +394,19 @@
             console.log('LC: _initData -> windows.getAll');
             var nodes = self._syncWins(newWins);
             self.set('nodes', nodes);
+            self.updateMarks();
             self.setPointerToCurrentTab();
           });
 
+        },
+        updateMarks: function() {
+          this.marks = tmi.bg.tree.getMarks();
+          Polymer.dom.flush();
+          var self = this;
+          var nodes = this.getAllEls();
+          _.each(nodes, function(node) {
+            node.set('mark', self.marks[node.id]);
+          });
         },
         _syncWins: function(newWins) {
           var result = [];
@@ -417,8 +429,8 @@
 
           var self = this;
           _.each(newWins, function(win, j){
-//          for (var j = newWins.length; j-- > 0; ) { //reverse order
-//            var win = newWins[j];
+          //for (var j = newWins.length; j-- > 0; ) { //reverse order
+            //var win = newWins[j];
             if (newWinsTodo[win.id]) { //not already added above
               var node = {};
               node.id = self.makeId(win.id);
@@ -460,7 +472,7 @@
             });
             Polymer.dom.flush();
             this.setPointerToCurrentWin();
-//            this.setPointer();
+            //this.setPointer();
           } else {
             searchStr = searchStr.toLowerCase();
             _.each(nodes, function(node, j){
@@ -496,7 +508,7 @@
         },
         getNode: function(id){
           return this.treeQuery('#' + id);
-//          return this.$$('#' + id);
+          //return this.$$('#' + id);
         },
         getFirstEl: function(){
           return this.treeQuery('tmi-window');
@@ -514,7 +526,7 @@
             result.concat(node.win.tabs);
           });
           return result;
-//          return this.root.querySelectorAll('tmi-window:not([hidden]), tmi-window:not([hidden]) iron-collapse[aria-expanded=true] tmi-tab');
+          //return this.root.querySelectorAll('tmi-window:not([hidden]), tmi-window:not([hidden]) iron-collapse[aria-expanded=true] tmi-tab');
         },
         getAllEls: function(){
           return this.root.querySelectorAll('.node');
@@ -567,14 +579,14 @@
             return el.hasAttribute('pointer');
           });
           return i || 0;
-/*
+          /*
           for (var i = 0; i < elList.length; i++) {
             if (elList[i].hasAttribute('pointer')){
               return i;
             }
           }
           return 0;
-*/
+          */
         },
         getActiveTab: function(winNode) {
           var tabs = winNode.win.tabs;
@@ -634,13 +646,13 @@
           Polymer.dom.flush();
           this.setPointerId(this.makeId(this.callingTab.windowId));
           return;
-//          tmi.chrome.windows.getCurrent(function(win){
-//            self.setPointerId(self.makeId(win.id));
-//          });
+          //tmi.chrome.windows.getCurrent(function(win){
+            //self.setPointerId(self.makeId(win.id));
+          //});
         },
         scrollToEl: function(el) {
           if (!this.scroller) {
-//            var mp = document.querySelector('#mainPanel');
+            //var mp = document.querySelector('#mainPanel');
             var mp = this.$$('#mainPanel');
             if (!mp) { return; }
             this.scroller = mp.scroller;
@@ -654,7 +666,7 @@
           if (rect.top > winBottom) {
             diff = rect.top - winBottom;
             this.scroller.scrollTop += diff;
-//            window.scrollBy(0, diff);
+            //window.scrollBy(0, diff);
           } else if (rect.top < winTop) {
             diff = rect.top - winTop;
             this.scroller.scrollTop += diff;
@@ -668,11 +680,11 @@
         selectId: function(id){
           var node = this.treeQuery('#' + id);
           node.select();
-//          this.$.selector.select(id);
+          //this.$.selector.select(id);
         },
         select: function(node){
           node.select();
-//          this.selectId(node.id);
+          //this.selectId(node.id);
         },
         selectPointer: function(){
           this.select(this.getPointer());
@@ -694,15 +706,15 @@
           return _.map(this.getSelectedItems(), function(node){
             return node.id;
           });
-//          return this.$.selector.selectedValues;
+          //return this.$.selector.selectedValues;
         },
         getSelectedItems: function(){
           return _.where(this.getVisibleEls(), {selected: true});
-//          return this.$.selector.selectedItems;
+          //return this.$.selector.selectedItems;
         },
         getSelectedTabs: function(){
           var nodes = this.getSelectedItems();
-//          var nodes = this.nodesInModelOrder(this.getSelectedItems());
+          //var nodes = this.nodesInModelOrder(this.getSelectedItems());
           return this.nodesToTabs(nodes);
         },
         getSelectedTabsId: function(){
@@ -712,7 +724,7 @@
           _.map(this.getAllEls(), function(el) {
             el.selected = false;
           });
-//          this.$.selector.selectedValues = [];
+          //this.$.selector.selectedValues = [];
         },
         nodesInModelOrder: function(nodes){
           var nodeOrder = this.getAllEls();
@@ -742,8 +754,8 @@
 //TODO: consider 1) el ids (eg "id-1234") 2) closed windows.
         branchPointer: function(funcs){
           var pointer = this.getPointer();
-//          var type = pointer.getType();
-//          funcs[type](pointer[type].id);
+          //var type = pointer.getType();
+          //funcs[type](pointer[type].id);
           if (pointer.tab) {
             funcs.tab.bind(this, pointer.tab.id)();
           } else {
@@ -751,7 +763,7 @@
           }
         },
 
-        //Tree movement
+        /* Tree movement */
         moveUpDownBy: function(incr) {
           Polymer.dom.flush();
           var elList;
@@ -787,9 +799,8 @@
           }
         },
         left: function(){
-//          this.getPointerWin().toggle();
-//          return;
-
+          //this.getPointerWin().toggle();
+          //return;
           var pointer = this.getPointer();
           if (pointer.isTab) {
             this.setPointerId(this.makeId(pointer.tab.windowId));
@@ -822,8 +833,8 @@
           }
         },
         searchMode: function(e){
-//          e.preventDefault();
-//          this.searchBox.focus();
+          //e.preventDefault();
+          //this.searchBox.focus();
           this.$$('#searchBox').focus();
         },
         getNodeFromMark: function(mark){
@@ -838,21 +849,57 @@
           return null;
         },
         goMark: function(){
-//          var key = getOneKey();
-//          var key = 'z';
-//          this.setPointer(getNodeFromMark(mark));
+          var self = this;
+          self.state = 'Goto...';
+          Mousetrap.record(function(seq) {
+            var seqStr = seq.join('');
+            self.setPointer(self.getNodeFromMark(seqStr));
+            self.state = '';
+          });
         },
         mark: function(){
-//          var key = getOneKey();
-          var key = 'z';
-          var oldMarkNode = this.getNodeFromMark();
-          if (oldMarkNode){ oldMarkNode.mark = ''; }
-          this.getPointer().mark = key;
+          var self = this;
+          self.state = 'Mark...';
+          Mousetrap.record(function(seq) {
+            var seqStr = seq.join('');
+            var oldMarkNode = self.getNodeFromMark(seqStr);
+            var pointer = self.getPointer();
+            if (oldMarkNode){
+              self.setMark(oldMarkNode, '');
+            }
+            if (seqStr === 'backspace') {
+              seqStr = '';
+            }
+            self.setMark(pointer, seqStr);
+            self.state = '';
+          });
+        },
+        setMark: function(node, seq) {
+          node.set('mark', seq);
+          if (seq) {
+            this.set('marks.' + node.id, seq);
+          } else {
+            delete(this.marks[node.id]);
+          }
+          tmi.bg.tree.setMarks(this.marks);
         },
 
         //manage wintabs
 //        putAfterTab: function(tab){},
 //        putEndOfWin: function(win){},
+        focusNode: function(node) {
+          if (node.tab) {
+            tmi.bg.browser.selectOpenTabId(node.tab.id);
+          } else {  // win
+            tmi.bg.browser.focusOpenWindow(node.win.id);
+          }
+        },
+        focusPointer: function() {
+          this.focusNode(this.getPointer());
+        },
+        focusMark: function(seq) {
+          this.focusNode(this.getNodeFromMark(seq));
+        },
         putAtPointer: function(){
           var tabIds = this.getSelectedTabsId();
           var pointer = this.getPointer();
@@ -865,7 +912,7 @@
             index = -1;
           }
           chrome.tabs.move(tabIds, {windowId: windowId, index: index});
-//          this.closeTmi();
+          //this.closeTmi();
         },
         putInNewWin: function(){
           var tabs = this.getSelectedTabs();
@@ -879,7 +926,7 @@
               chrome.tabs.move(tabIds.slice(1), {windowId: newWin.id, index: -1});
             });
           });
-//          this.closeTmi();
+          //this.closeTmi();
         },
         name: function(){},
         toSave: function(){},

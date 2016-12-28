@@ -51,7 +51,8 @@ var browser = {
   bookmarkWinAndClose: function(winNode) {
     var bmFolder = {
       parentId: browser.tmiBookMarkRootId,
-      title: browser._genWinTitle(winNode)
+      title: browser._genWinTitle(winNode),
+      index: 0
     };
     chrome.bookmarks.create(bmFolder, function(folder) {
       browser._bookmarkTabsRecurse(folder.id, winNode.win.tabs, function(){
@@ -64,13 +65,20 @@ var browser = {
 var tree = {};
 
 //should be [] if in an extension
-tree.nodes = [
-];
+tree.nodes = [];
 tree.getNodes = function(){
   return tree.nodes;
 };
 tree.setNodes = function(nodes){
   tree.nodes = nodes;
+};
+
+tree.marks = {};
+tree.getMarks = function(){
+  return tree.marks;
+};
+tree.setMarks = function(marks){
+  tree.marks = marks;
 };
 
 /*

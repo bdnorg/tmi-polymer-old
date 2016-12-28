@@ -50,11 +50,29 @@
 --- commit
 - changed up/down movement to be in same level
 - implemented bookmark and close
+#! working version - prior to jstree exp1-3.
+--- commit
+- reverted after jstree / exp3.
+- added mark / goto.
+--- commit
+
 
 ---- head
 
 --- Todo
+# ptmi vs. exp3 (jstree) diffs: mark implemented. 0-9 implemented.
+## tree interface:: downward: draw model. search(?). getVisibleNodes.
+  # toggle/un/select, get/clearSelected, id2node, left/right?
+  # get/setPointer. nextprevVisible. collapse/expand. closePopup.
+  # upward: user clicked/doubleclicked/selected/uncollapsed.
+## app interface
+  # which use dom query:
 ! right in search. test.
+0 send tab to win / tag
+0 dedup on save bookmarks
+0 refactor: business logic should be defined in a function with local variables!
+  - biz logic separate from tree el. centralize biz logic. combine biz logic of
+  - tmi-tree and app.js. move biz logic to background.js
 0 fix movement
 0 m, open bookmarks, save/restore order, names,
 0 css, more in bg, refactor(kill initApp, remove extra loads), optimize all,
@@ -62,8 +80,10 @@
 - id-# vs. id.
 - Save LRU tabs. superstars.
 2 move app.js to elements. get rid of initApp.
-0 movement + {shift: jump, ctrl: bring tab? select?}.  jump: within level: {top, pin, active, bottom}
-  # right: right toggle, again to active? right-again: jump to top/bottom/active? open all? open tab details?
+0 movement + {shift: jump, ctrl: bring tab? select?}.
+  - jump: within level: {top, pin, active, bottom}
+  # right: right toggle, again to active?
+    - right-again: jump to top/bottom/active? open all? open tab details?
   # up/down only at same level?
 - names: input, search(test), save
 ! search: if matches win it should show even if viewTabs.length === 0
