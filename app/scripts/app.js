@@ -106,42 +106,44 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     ]],
 
     //nav wintabs
-    ['docHeader', 'Nav wintabs', [
+    ['docHeader', 'Navigate', [
       ['enter', 'focus / open', app.roott.focusPointer],
       ['o', '(un)pin window', app.roott.pin],
       ['/', 'search', function(e){app.roott.searchMode(e);} ],
-      ['esc', 'clear Search', function(e){app.clearSearch(e);} ],
-      ['m', 'mark tag', app.roott.mark],
-      ['\'', 'goto tag', app.roott.goMark],
-      ['m DEL', 'delete tag', false],
+//      ['esc', 'Suspend search', function(e){app.clearSearch(e);} ],
+      ['esc', 'Suspend search', false ],
+      ['\'', 'goto mark', app.roott.goMark],
+      ['m', 'create mark', app.roott.mark],
+      ['m DEL', 'delete mark', false],
       ['0-9', 'fast goto', false],
-      ['1', false, function() {app.roott.focusMark('1');} ],
-      ['2', false, function() {app.roott.focusMark('2');} ],
-      ['3', false, function() {app.roott.focusMark('3');} ],
-      ['4', false, function() {app.roott.focusMark('4');} ],
-      ['5', false, function() {app.roott.focusMark('5');} ],
-      ['6', false, function() {app.roott.focusMark('6');} ],
-      ['7', false, function() {app.roott.focusMark('7');} ],
-      ['8', false, function() {app.roott.focusMark('8');} ],
-      ['9', false, function() {app.roott.focusMark('9');} ],
-      ['0', false, function() {app.roott.focusMark('0');} ],
+      ['1', false, () => app.roott.focusMark('1') ],
+      ['2', false, () => app.roott.focusMark('2') ],
+      ['3', false, () => app.roott.focusMark('3') ],
+      ['4', false, () => app.roott.focusMark('4') ],
+      ['5', false, () => app.roott.focusMark('5') ],
+      ['6', false, () => app.roott.focusMark('6') ],
+      ['7', false, () => app.roott.focusMark('7') ],
+      ['8', false, () => app.roott.focusMark('8') ],
+      ['9', false, () => app.roott.focusMark('9') ],
+      ['0', false, () => app.roott.focusMark('0') ],
     ]],
 
 //manage wintabs
-    ['docHeader', 'Manage wintabs', [
+    ['docHeader', 'Arrange', [
       ['x', 'select node', app.roott.selectPointer],
       ['X', 'select tabs to end of win', app.roott.selectToEnd],
       ['p', 'paste selected after pointer', app.roott.putAtPointer],
-      ['P', 'selected to new win', app.roott.putInNewWin],
+      ['P', 'selected to new win', () => app.roott.putInNewWin('') ],
+      ['y', 'move pointer to mark (new win)', app.roott.moveToTag],
+    ]],
+
+//Freezing (acts on current rather than pointer)
+    ['docHeader', 'Store',[
       ['n', 'name window', app.roott.nameWin],
       ['w b', 'Bookmark and close Window', app.roott.bookmarkCloseWin],
 //      ['w s', 'mark Window to Save', app.roott.toSave],
 //      ['w c', 'Close Window (keep node)', app.roott.closeWin],
 //      ['w d', 'Window Delete (for closed)', app.roott.deleteWin],
-    ]],
-
-//Freezing (acts on current rather than pointer)
-    ['docHeader', 'Manage wintabs',[
       ['f f', 'Freeze calling tab', app.roott.freezeCurrentTab],
       ['f p', 'Freeze pointer', app.roott.branchPointerWrap({
            tab: tmi.bg.freezeTab,
@@ -163,8 +165,22 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     ]],
   ];
 
+//    var menu = document.querySelector('tmi-menu');
+    var menu = roott.$$('tmi-menu');
+    menu.keyMap = app.keyMap;
+//    var searchBox = document.querySelector('#searchBox');
+    var searchBox = app.$$('#searchBox');
+
     app.makeHandler = function(func) {
-      return function(e){
+      return function(e, combo){
+        if (app.inputMode) {
+          if (combo === 'esc') {
+            app.blurSearch(e);
+          } else if (combo === 'enter') {
+            app.blurSearch(e);
+          }
+          return;
+        }
         e.stopPropagation();
         e.preventDefault();
         func();
@@ -185,23 +201,30 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
     }
 
-//    var menu = document.querySelector('tmi-menu');
-    var menu = roott.$$('tmi-menu');
-    menu.keyMap = app.keyMap;
-//    var searchBox = document.querySelector('#searchBox');
-    var searchBox = app.$$('#searchBox');
-    var searchKey = new Mousetrap(searchBox);
     app.clearSearch = function(e){
       e.preventDefault();
       app.searchstr = '';
       app.roott.hideAll();
+      app.roott.setPointerToCurrentWin();
       app.roott.clearSelected();
       searchBox.blur();
     };
-    searchKey.bind('esc', app.clearSearch);
-    searchKey.bind('return', function(e){
+    app.blurSearch = function(e) {
       searchBox.blur();
-    });
+      app.inputMode = false;
+    };
+    var searchKey = new Mousetrap(searchBox);
+    searchKey.bind('esc', app.blurSearch);
+    searchKey.bind('enter', app.blurSearch);
+
+    app.redrawTree = function() {
+      var appHtml = '<tmi-tree id="app" appId="app"></tmi-tree>';
+      var newAppEl = document.createElement(appHtml);
+      document.body.removeChild(app);
+      document.body.appendChild(newAppEl);
+      app = document.querySelector('#app');
+      //need to add all this file's app functions back in.
+    };
 
   }; // end loadKeyMap
 

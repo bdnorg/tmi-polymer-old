@@ -11,7 +11,7 @@
   </style>
   <template>
     <div>
-      <span id="showpointer" activetab$="[[tab.active]]">
+      <span id="showpointer" activetab$="[[tab.active]]" class="markactive">&nbsp;{{mark}}</span>
         &nbsp;
       </span>
         <input type="checkbox" name="winCheck"
@@ -330,11 +330,8 @@
     <tmi-browser id="browser"
                  new-wins="{{newWins}}"></tmi-browser>
 
-
-
       </paper-header-panel>
     </paper-drawer-panel>
-
 
   </template>
 </dom-module>
@@ -360,8 +357,8 @@
         callingTab: {},
         roott: this,
         searchstr: '',
+        inputMode: false,
         state: '',
-        marks: {},
         //nodes: [],
         created: function() {
           console.log('LC: created');
@@ -377,7 +374,6 @@
         },
         ready: function() {
           console.log('LC: ready');
-          this.marks = {};
           this.roott = this;
           this._initData();
           //app.init();
@@ -388,25 +384,25 @@
 
         makeId: function(id){return 'id-' + id;},
         isHidden: function(vt){ return (!vt || vt.length === 0);},
-        _initData:function() {
+        _initData: function() {
           var self = this;
           tmi.chrome.windows.getAll({populate: true}, function(newWins) {
             console.log('LC: _initData -> windows.getAll');
             var nodes = self._syncWins(newWins);
             self.set('nodes', nodes);
-            self.updateMarks();
             self.setPointerToCurrentTab();
+            self.updateMarks();
           });
 
         },
         updateMarks: function() {
-          this.marks = tmi.bg.tree.getMarks();
-          Polymer.dom.flush();
+          var marks = tmi.bg.tree.marks;
           var self = this;
           var nodes = this.getAllEls();
           _.each(nodes, function(node) {
-            node.set('mark', self.marks[node.id]);
+            node.set('mark', marks[node.id]);
           });
+          Polymer.dom.flush();
         },
         _syncWins: function(newWins) {
           var result = [];
@@ -429,7 +425,6 @@
 
           var self = this;
           _.each(newWins, function(win, j){
-          //for (var j = newWins.length; j-- > 0; ) { //reverse order
             //var win = newWins[j];
             if (newWinsTodo[win.id]) { //not already added above
               var node = {};
@@ -485,7 +480,6 @@
             this.setPointer(firstTab);
           }
         },
-
         // Return tabs that match searchStr
         getViewTabs: function(tabs, searchStr){
           var viewTabs = _.filter(tabs, function(tab){
@@ -531,9 +525,6 @@
         getAllEls: function(){
           return this.root.querySelectorAll('.node');
         },
-        toggleSelected: function(el){
-
-        },
 
         stack: function(arg) {
           var stack = new Error().stack;
@@ -550,7 +541,6 @@
           Polymer.dom.flush();
           this.scrollToEl(el);
           return this.attributeFollows('pointer', el, oldEl);
-
         },
         setPointerId: function(id){
           var newEl = this.getNode(id);
@@ -671,7 +661,6 @@
             diff = rect.top - winTop;
             this.scroller.scrollTop += diff;
           }
-          console.log('scrollToEl: ', winBottom, diff, el, rect);
         },
 
         /* select stuff */
@@ -764,18 +753,23 @@
         },
 
         /* Tree movement */
-        moveUpDownBy: function(incr) {
-          Polymer.dom.flush();
-          var elList;
-          var pointer = this.getPointer();
-          if (pointer.isTab) { //tab
-            elList = this.getVisibleEls();
-          } else { //win
-            elList = this.getVisibleWinEls();
-          }
+        moveUpDownBy: function(offset) {
+          var elList = this.getVisibleEls();
           var i = this.getPointerIndex(elList);
-          var newPointer = elList[(i + incr + elList.length) % elList.length];
+          var newPointer = elList[(i + offset + elList.length) % elList.length];
           this.setPointer(newPointer);
+          return;
+          // Polymer.dom.flush();
+          // var elList;
+          // var pointer = this.getPointer();
+          // if (pointer.isTab) { //tab
+          //   elList = this.getVisibleEls();
+          // } else { //win
+          //   elList = this.getVisibleWinEls();
+          // }
+          // var i = this.getPointerIndex(elList);
+          // var newPointer = elList[(i + incr + elList.length) % elList.length];
+          // this.setPointer(newPointer);
         },
         down: function() {
           this.moveUpDownBy(1);
@@ -833,14 +827,12 @@
           }
         },
         searchMode: function(e){
-          //e.preventDefault();
-          //this.searchBox.focus();
+          this.inputMode = true;
           this.$$('#searchBox').focus();
         },
         getNodeFromMark: function(mark){
-          var elList = this.getVisibleEls();
-          var i = elList.length;
-          while(i--) {   //reverse loop
+          var elList = this.getAllEls();
+          for (var i=0; i < elList.length; i++) {
             var node = elList[i];
             if (node.mark === mark) {
               return node;
@@ -860,28 +852,34 @@
         mark: function(){
           var self = this;
           self.state = 'Mark...';
-          Mousetrap.record(function(seq) {
-            var seqStr = seq.join('');
-            var oldMarkNode = self.getNodeFromMark(seqStr);
-            var pointer = self.getPointer();
-            if (oldMarkNode){
-              self.setMark(oldMarkNode, '');
-            }
-            if (seqStr === 'backspace') {
-              seqStr = '';
-            }
-            self.setMark(pointer, seqStr);
+          Mousetrap.record(function(seqAr) {
             self.state = '';
+            var seq = seqAr.join('');
+            if (seq === 'esc' ) { return; }
+            self.setMarkId(self.getPointer().id, seq);
           });
         },
-        setMark: function(node, seq) {
-          node.set('mark', seq);
-          if (seq) {
-            this.set('marks.' + node.id, seq);
+        setMarkId: function(nodeId, seq) {
+          var marks = tmi.bg.tree.marks;
+          if (seq === 'backspace' ) {
+            delete(marks[nodeId]);
           } else {
-            delete(this.marks[node.id]);
+            marks[nodeId] = seq;
           }
-          tmi.bg.tree.setMarks(this.marks);
+          this.updateMarks();
+          // var oldMarkNode = this.getNodeFromMark(seq);
+          // if (oldMarkNode){
+          //   this.setMark(oldMarkNode, '');
+          // }
+          // if (node) {
+          //   node.set('mark', seq); //needed? use model
+          // }
+          // if (seq) {
+          //   this.set('marks.' + node.id, seq); //needed? use bg
+          // } else {
+          //   delete(this.marks[node.id]);
+          // }
+          // tmi.bg.tree.setMarks(this.marks);
         },
 
         //manage wintabs
@@ -901,32 +899,59 @@
           this.focusNode(this.getNodeFromMark(seq));
         },
         putAtPointer: function(){
+          this.putAtNode(this.getPointer());
+        },
+        putAtNode: function(node){
           var tabIds = this.getSelectedTabsId();
-          var pointer = this.getPointer();
+          if (tabIds.length === 0) {
+            var tabs = this.nodesToTabs([this.getPointer()]);
+            tabIds = _.pluck(tabs, 'id');
+          }
           var index, windowId;
-          if (pointer.isTab) {
-            windowId = pointer.tab.windowId;
-            index = pointer.tab.index + 1;
+          if (node.isTab) {
+            windowId = node.tab.windowId;
+            index = node.tab.index + 1;
           } else {
-            windowId = pointer.win.id;
+            windowId = node.win.id;
             index = -1;
           }
           chrome.tabs.move(tabIds, {windowId: windowId, index: index});
           //this.closeTmi();
         },
-        putInNewWin: function(){
+        putInNewWin: function(seq){
+          var self = this;
           var tabs = this.getSelectedTabs();
+          if (tabs.length === 0) {
+            tabs = this.nodesToTabs([this.getPointer()]);
+          }
           chrome.windows.get(tabs[0].windowId, function(win) {
             var tabParams={tabId: tabs[0].id,
-                           width: win.width,
-                           height: win.height};
-
+              width: win.width,
+              height: win.height
+            };
             chrome.windows.create(tabParams, function(newWin){
-              var tabIds = _.pluck(tabs, 'id');
-              chrome.tabs.move(tabIds.slice(1), {windowId: newWin.id, index: -1});
+              self.setMarkId(self.makeId(newWin.id), seq);
+              if (tabs.length > 1) {
+                var tabIds = _.pluck(tabs, 'id');
+                chrome.tabs.move(tabIds.slice(1), {windowId: newWin.id, index: -1});
+              }
             });
           });
           //this.closeTmi();
+        },
+        moveToTag: function(){
+          var self = this;
+          self.state = 'Move to...';
+          Mousetrap.record(function(seqAr) {
+            var seq = seqAr.join('');
+            var destNode = self.getNodeFromMark(seq);
+            if (destNode) {
+              self.putAtNode(destNode);
+            } else {
+              self.putInNewWin(seq);
+            }
+            self.state = '';
+          });
         },
         name: function(){},
         toSave: function(){},
@@ -934,7 +959,6 @@
         bookmarkCloseWin: function(){
           tmi.bg.browser.bookmarkWinAndClose(this.getPointerWin());
         },
-//        delete: function(){},
 
         //Freezing
 //        makeFreezer: function(closed){},

@@ -53,8 +53,13 @@
 #! working version - prior to jstree exp1-3.
 --- commit
 - reverted after jstree / exp3.
-- added mark / goto.
+- added mark / goto / 0-9
 --- commit
+- y sends tab to mark / new win.
+- Fixed keys being intercepted in search.
+- up / down transitions across wins and tabs
+--- commit
+
 
 
 ---- head
@@ -66,13 +71,17 @@
   # get/setPointer. nextprevVisible. collapse/expand. closePopup.
   # upward: user clicked/doubleclicked/selected/uncollapsed.
 ## app interface
+  # upward: user clicked/doubleclicked/selected/uncollapsed.
   # which use dom query:
 ! right in search. test.
-0 send tab to win / tag
+00 redraw tree(after moves). p/P before after point. pin insert point.
+  -mark/goto no delay / limited chars / open v point to via shift
+  -up/down into tabs. pin to point. auto mark 0-9.
 0 dedup on save bookmarks
 0 refactor: business logic should be defined in a function with local variables!
   - biz logic separate from tree el. centralize biz logic. combine biz logic of
-  - tmi-tree and app.js. move biz logic to background.js
+  - tmi-tree and app.js. move biz logic to background.js. use model everywhere.
+  - mock chrome.* and use bg even in test.
 0 fix movement
 0 m, open bookmarks, save/restore order, names,
 0 css, more in bg, refactor(kill initApp, remove extra loads), optimize all,
