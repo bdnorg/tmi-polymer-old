@@ -59,13 +59,15 @@
 - Fixed keys being intercepted in search.
 - up / down transitions across wins and tabs
 --- commit
+- runs background.js, even when not running as extension
+- drawTree: dynamically add app el
+--- commit
 
 
 
 ---- head
 
 --- Todo
-# ptmi vs. exp3 (jstree) diffs: mark implemented. 0-9 implemented.
 ## tree interface:: downward: draw model. search(?). getVisibleNodes.
   # toggle/un/select, get/clearSelected, id2node, left/right?
   # get/setPointer. nextprevVisible. collapse/expand. closePopup.
@@ -75,8 +77,8 @@
   # which use dom query:
 ! right in search. test.
 00 redraw tree(after moves). p/P before after point. pin insert point.
-  -mark/goto no delay / limited chars / open v point to via shift
-  -up/down into tabs. pin to point. auto mark 0-9.
+  -mark/goto no delay / limited chars / open vs point to via shift
+  -pin to point. auto mark 0-9. move keybinding to background.js?
 0 dedup on save bookmarks
 0 refactor: business logic should be defined in a function with local variables!
   - biz logic separate from tree el. centralize biz logic. combine biz logic of

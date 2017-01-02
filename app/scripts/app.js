@@ -13,8 +13,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   // Grab a reference to our auto-binding template
   // and give it some initial binding values
   // Learn more about auto-binding templates at http://goo.gl/Dx1u2g
-  var app = document.querySelector('#app');
-  var roott = document.querySelector('#app');
+  //var app = document.querySelector('#app');
+  window.app = window.app || {};
   console.log('LC: app.js');
 
   window.onload = function() {
@@ -30,10 +30,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 //  });
   app.init = function() {
     console.log('App ready!');
-//    app.roott = document.querySelector('#main-tree');
-    app.roott = document.querySelector('#app');
-// bindAll fixes this for functions in keyMap.
+    app.roott = document.querySelector('#tmiTree');
     _.bindAll(app.roott, app.roott.methodNames);
+
     app.loadKeyMap();
 
     //for debugging
@@ -45,13 +44,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     console.log('LC: WebComponentsReady event');
 
     Polymer.dom.flush();
-    app.scrollToEl(app.getPointer());
-      app.scrollToEl(app.getPointer());
+    app.roott.scrollToEl(app.roott.getPointer());
     document.querySelector('body').removeAttribute('unresolved');
 
     // Ensure the drawer is hidden on desktop/tablet
 //    var drawerPanel = document.querySelector('#paperDrawerPanel');
-    var drawerPanel = roott.$$('#paperDrawerPanel');
+    var drawerPanel = app.roott.$$('#paperDrawerPanel');
     drawerPanel.forceNarrow = true;
   });
 
@@ -71,7 +69,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
   // Scroll page to top and expand header
   app.scrollPageToTop = function() {
-    console.log('ran app.scrollPateToTop()');
+    console.log('ran app.scrollPageToTop()');
     //app.$.headerPanelMain.scrollToTop(true);
   };
 
@@ -166,14 +164,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   ];
 
 //    var menu = document.querySelector('tmi-menu');
-    var menu = roott.$$('tmi-menu');
+    var menu = app.roott.$$('tmi-menu');
     menu.keyMap = app.keyMap;
 //    var searchBox = document.querySelector('#searchBox');
-    var searchBox = app.$$('#searchBox');
+    var searchBox = app.roott.$$('#searchBox');
 
     app.makeHandler = function(func) {
       return function(e, combo){
-        if (app.inputMode) {
+        if (app.roott.inputMode) {
           if (combo === 'esc') {
             app.blurSearch(e);
           } else if (combo === 'enter') {
@@ -193,8 +191,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       for (var j = 0; j < sectionRows.length; j++) {
         var keyRow = sectionRows[j];
         if(keyRow[2]){
-//          app.keyOut[keyRow[0]] = keyRow[2];
-//          Mousetrap.bind(keyRow[0], keyRow[2]);
           var keyHandler = app.makeHandler(keyRow[2]);
           Mousetrap.bind(keyRow[0], keyHandler);
         }
@@ -211,23 +207,26 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     };
     app.blurSearch = function(e) {
       searchBox.blur();
-      app.inputMode = false;
+      app.roott.inputMode = false;
     };
     var searchKey = new Mousetrap(searchBox);
     searchKey.bind('esc', app.blurSearch);
     searchKey.bind('enter', app.blurSearch);
 
-    app.redrawTree = function() {
-      var appHtml = '<tmi-tree id="app" appId="app"></tmi-tree>';
-      var newAppEl = document.createElement(appHtml);
-      document.body.removeChild(app);
-      document.body.appendChild(newAppEl);
-      app = document.querySelector('#app');
-      //need to add all this file's app functions back in.
-    };
-
   }; // end loadKeyMap
 
+  app.redrawTree = function() {
+//    app.roott = document.querySelector('#tmiTree');
+    document.body.removeChild(app.roott);
+    app.drawTree();
+  };
+  app.drawTree = function() {
+    console.log('drawTree');
+    var newTree = document.createElement('tmi-tree');
+    newTree.setAttribute('id','tmiTree');
+    document.body.appendChild(newTree);
+    app.init();
+  };
 
-  app.init();
+  app.drawTree();
 })(document);

@@ -363,6 +363,7 @@
         created: function() {
           console.log('LC: created');
           var self = this;
+          console.log('chrome.extension', chrome.extension);
           tmi.chrome.tabs.query({active: true, currentWindow: true},
               function(tabs){
                 console.log('LC: created -> tabs.query callingTab');
@@ -962,17 +963,15 @@
 
         //Freezing
 //        makeFreezer: function(closed){},
-//        browser.bmFreeze: function(win){},
-//        browser.freezeAll: function(key){},
 //        browser.freezeTab: function(tab){},
         freezeCurrentTab: function(){
-          tmi.bg.freezeTab(this.callingTab.id);
+          tmi.bg.fz.freezeTab(this.callingTab.id);
         },
         freezeWindow: function(){
-          tmi.bg.freezeWindow(this.callingTab.windowId);
+          tmi.bg.fz.freezeWindow(this.callingTab.windowId);
         },
         freezeAllWindows: function(){
-          tmi.bg.freezeAllWindows();
+          tmi.bg.fz.freezeAllWindows();
         },
 
 
@@ -989,10 +988,10 @@
 
 
       }; // end polymerObj {}
-//      _.bindAll(polymerObj);
-//      polymerObj.polymerObjKeys = Object.keys(polymerObj);
+      // _.bindAll(polymerObj);
+      // polymerObj.polymerObjKeys = Object.keys(polymerObj);
       polymerObj.methodNames = _.filter( Object.keys(polymerObj),
-        function(n){ return _.isFunction(polymerObj[n]); });
+        function(n){return _.isFunction(polymerObj[n]); });
       Polymer(polymerObj);
 //      }); //end Polymer()
     })();

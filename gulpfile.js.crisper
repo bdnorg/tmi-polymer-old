@@ -125,6 +125,7 @@ gulp.task('copy', function () {
   var app = gulp.src([
     'app/*',
     '!app/test',
+    '!app/old',
     '!app/cache-config.json'
   ], {
     dot: true
@@ -153,7 +154,8 @@ gulp.task('copy', function () {
     .pipe($.rename('elements.vulcanized.html'))
     .pipe(gulp.dest('dist/elements'));
 
-//BDN: added BDNjs
+//BDN: added 'BDNjs'
+//  return merge(app, bower, elements, vulcanized, swBootstrap, swToolbox)
   return merge(app, bower, elements, vulcanized, swBootstrap, swToolbox, BDNjs)
     .pipe($.size({title: 'copy'}));
 });

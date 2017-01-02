@@ -1,4 +1,13 @@
-window.tmi = {};
+
+console.log('In background.js');
+
+var browser = browser || {};
+var tree = tree || {};
+var fz = fz || {};
+var bgapp = bgapp || {};
+window.tmi = window.tmi || {};
+tmi.bg = {browser: browser, tree: tree, fz: fz, bgapp: bgapp};
+
 function log(message, level) {
   var logLevel=1;
   if(!level) { level = 1; }
@@ -62,24 +71,23 @@ var browser = {
   },
 }; //end browser {}
 
-var tree = {};
 
-//should be [] if in an extension
-tree.nodes = [];
+//should retrieve from storage
+tree.nodes = tree.nodes || [];
+tree.marks = tree.marks || {};
 tree.getNodes = function(){
   return tree.nodes;
 };
 tree.setNodes = function(nodes){
   tree.nodes = nodes;
 };
-
-tree.marks = {};
 tree.getMarks = function(){
   return tree.marks;
 };
 tree.setMarks = function(marks){
   tree.marks = marks;
 };
+// end tree {}
 
 /*
 --- freezing
@@ -101,7 +109,7 @@ var frozenIndex = 0;
 
 //Restore window variable to stored value.
 // Otherwise create stored value based on window variable's value
-function restoreFromLawnchair (key) {
+fz.restoreFromLawnchair = function(key) {
   frozenTmiDb.get(key, function(obj){
     if (obj && obj.val) {
       window[key]=obj.val;
@@ -109,10 +117,10 @@ function restoreFromLawnchair (key) {
       frozenTmiDb.save({key:key, val:window[key]}, function(){});
     }
   });
-}
-restoreFromLawnchair ('frozenIndex');
+};
+fz.restoreFromLawnchair ('frozenIndex');
 
-function freezeTab(tabId, callback){
+fz.freezeTab = function(tabId, callback){
   chrome.tabs.get(tabId, function (tabb){
     //don't freeze a frozen page
     if (tabb.url.indexOf('tmiFrozen') !== -1) {
@@ -132,7 +140,7 @@ function freezeTab(tabId, callback){
         var key = 'frozenTabs' + index;
         frozenObj.Index = index;
         frozenObj.randName = Math.floor(Math.random()*100000000);
-//        var frozenUrl = chrome.extension.getURL('frozen.html?');
+        //var frozenUrl = chrome.extension.getURL('frozen.html?');
         var frozenUrl = 'file:///?tmiFrozen&';
         frozenUrl += 'randName=' + frozenObj.randName;
         frozenUrl += '&frozenIndex=' + frozenObj.Index;
@@ -145,70 +153,69 @@ function freezeTab(tabId, callback){
       });
     });
   });
-}
+};
 
-function freezeTabsRecurse(tabs, callback){
+fz._freezeTabsRecurse = function(tabs, callback){
   if (tabs.length > 1) {
     var tab = tabs.shift();
     console.log('Tabs left to freeze: ', tabs.length);
-    freezeTab(tab.id ,function(){freezeTabsRecurse(tabs, callback);});
+    fz.freezeTab(tab.id ,function(){fz._freezeTabsRecurse(tabs, callback);});
   } else {
-    freezeTab(tabs[0].id, function(){
+    fz.freezeTab(tabs[0].id, function(){
       callback();
     });
   }
-}
-function freezeAllQuery(query, callback) {
+};
+fz._freezeAllQuery = function(query, callback) {
   chrome.tabs.query(query, function(tabs){
-    freezeTabsRecurse(tabs, callback);
+    fz._freezeTabsRecurse(tabs, callback);
   });
-}
-function freezeWindow(winId) {
-  freezeAllQuery({pinned: false, windowType: 'normal', windowId: winId});
-}
-function freezeAllWindows(callback) {
-  freezeAllQuery({pinned: false, windowType: 'normal'}, callback);
-}
+};
+fz.freezeWindow = function(winId) {
+  fz._freezeAllQuery({pinned: false, windowType: 'normal', windowId: winId});
+};
+fz.freezeAllWindows = function(callback) {
+  fz._freezeAllQuery({pinned: false, windowType: 'normal'}, callback);
+};
 
-function freezeResponse(request, sender){
+fz.freezeResponse = function(request, sender){
   frozenTmiDb.get('frozenTabs' + request.frozenIndex, function (obj){
     if (parseInt(request.randName) === obj.val.randName) {
       obj.val.name = 'tmiFrozenData';
-//      obj.val.frozenIndex = request.frozenIndex;
 
-//      injectFrozenData(sender.tab.id, obj.val);
-//      sendResponse({injected: true});
+      // obj.val.frozenIndex = request.frozenIndex;
+      //
+      // injectFrozenData(sender.tab.id, obj.val);
+      // sendResponse({injected: true});
       chrome.tabs.sendMessage(sender.tab.id, obj.val);
     }
-//    sendResponse({injected: true});
-//    return true;
+    // sendResponse({injected: true});
+    // return true;
   });
-}
-
-function doScheduledFreezePush(){
+};
+fz.doScheduledFreezePush = function(){
   tmi.isFreezeScheduled = false;
   var queueCopy = tmi.freezeQueue;
   tmi.freezeQueue = [];
   for (var i in queueCopy) {
     var request = queueCopy[i].request;
     var sender = queueCopy[i].sender;
-    freezeResponse(request, sender);
+    fz.freezeResponse(request, sender);
   }
-}
-
-function enqueueFreezePush(request, sender){
+};
+fz.enqueueFreezePush = function(request, sender){
   tmi.freezeQueue.push({request:request, sender:sender});
   if (! tmi.isFreezeScheduled){
-    tmi.saveFreezeSchedule = setTimeout(doScheduledFreezePush, 200);
+    tmi.saveFreezeSchedule = setTimeout(fz.doScheduledFreezePush, 200);
     tmi.isFreezeScheduled = true;
   }
-}
+};
 
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
     if (request.name === 'tmiFrozenPage') {
-//      freezeResponse(request, sender);
-      enqueueFreezePush(request, sender);
+      //fz.freezeResponse(request, sender);
+      fz.enqueueFreezePush(request, sender);
     } else if (request.name === 'tmiExpandAll') {
     }
   }
@@ -218,83 +225,18 @@ window.tmi.freezeQueue = [];
 window.tmi.isFreezeScheduled = false;
 
 
-/* --- events */
-// if anything changes, send an 'onWinChange' event
-
-/*
-function onWinChange(tabId, windowId, eventType) {
-  chrome.runtime.sendMessage({id: 'onWinChange', tabId: tabId, winId: windowId, eventType: eventType});
-  if(! windowId) {
-    console.log('windowId undefined. eventType: ' + eventType + '. tabId: ' + tabId);
-    return;
-  }
-}
-
-// onCreated:
-var winEvents = {
-  onRemoved: function(windowId) {
-    //t  nodes.deleteWinId(windowId);
-    onWinChange(false, windowId, false);
-  },
-  onFocusChanged: function onWinFocusChanged(winId){
-    //t  nodes.focusedTab();
-    //chrome.tabs.query({lastFocusedWindow: true, active: true}, function(tabs){
-    //      recentTabs.moveHead(tabs[0].id);
-  }
-};
-for (var evType in winEvents) {
-  chrome.windows[evType].addListener(winEvents[evType]);
-}
-
-//  onHighlighted:
-//  onReplaced:
-var tabEvents = {
-  onCreated: function(tab) {
-    onWinChange(tab.id, tab.windowId, 'onCreated');
-  },
-  onUpdated: function(tabId, info, tab) {
-    onWinChange(tabId, tab.windowId, 'onTabupdated');
-  },
-  onMoved: function(tabId, info) {
-    onWinChange(tabId, info.windowId, 'onMoved');
-  },
-  onActivated: function(info){
-    //t  nodes.focusedTab();
-  },
-  onDetached: function(tabId, info) {
-    onWinChange(tabId, info.oldWindowId, 'onDetached');
-  },
-  onAttached: function(tabId, info) {
-    onWinChange(tabId, info.newWindowId, 'onAttached');
-  },
-  onRemoved: function(tabId, info) {
-    //info.isWindowClosing -> ??
-//    recentTabs.remove(tabId);
-    onWinChange(tabId, info.windowId, 'onRemoved');
-  }
-};
-for (var evType in tabEvents) {
-  chrome.tabs[evType].addListener(tabEvents[evType]);
-}
-*/ //end commenting out events
-
 /* --- newNewTab */
-function newNewTab() {
+var newNewTab = function () {
   chrome.tabs.query({lastFocusedWindow: true, active: true}, function(tab){
     chrome.tabs.create({openerTabId: tab.id, index: ++tab[0].index});
   });
-}
-
+};
 chrome.commands.onCommand.addListener(function(command) {
   if (command === 'newNewTab') {
     newNewTab();
-//  } else if (command === 'togglePopUp') {
-//    togglePopup();
+  // } else if (command === 'togglePopUp') {
+  //   togglePopup();
   }
 });
 
-
-/* --- utils */
-/* --- popup  */
-/* -- linked list */
-//var recentTabs = linkedList();
+// bgapp
