@@ -62,7 +62,10 @@
 - runs background.js, even when not running as extension
 - drawTree: dynamically add app el
 --- commit
-
+- quick mark / goto (don't wait for Mousetrap record)
+- P/p before/after pointer.
+- Redraw tree after moving tabs
+- freeze all no longer captures thumbnails.
 
 
 ---- head
@@ -75,21 +78,33 @@
 ## app interface
   # upward: user clicked/doubleclicked/selected/uncollapsed.
   # which use dom query:
-! right in search. test.
-00 redraw tree(after moves). p/P before after point. pin insert point.
-  -mark/goto no delay / limited chars / open vs point to via shift
-  -pin to point. auto mark 0-9. move keybinding to background.js?
-0 dedup on save bookmarks
-0 refactor: business logic should be defined in a function with local variables!
-  - biz logic separate from tree el. centralize biz logic. combine biz logic of
-  - tmi-tree and app.js. move biz logic to background.js. use model everywhere.
-  - mock chrome.* and use bg even in test.
-0 fix movement
-0 m, open bookmarks, save/restore order, names,
-0 css, more in bg, refactor(kill initApp, remove extra loads), optimize all,
+! second esc should clear search (stop prop on doc?)(see keydown listener preventing popup close).
+  - marking 1-5 doesn't clear default 1-5. key marks by key (not id).
+0 pin: show which wins are pinned. reverse order of unpinned wins.
+0 save/restore order / marks
+0 start with active win closed.  At start, only show only active tab under win.
+  - graphically show: # tabs, 1st and active tab, tabs w/ a mark.
+  - show extra win info for pointer ()
+0 dedup on save bookmarks. add date. wins w/ some tabs open and some bookemarked.
+0 open bookmarks. search bookmarks.
+0 win names,
+0 find dup URLs.  find like domains.  google search also shows saved/open urls.
+- better J/K g/G
+- right goes to pointer position at previous "left" key, or active, or first tab.
+- open vs point to (via shift key?).
+- refactor: polymerObj should be defined in a function with local variables.
+  - biz logic separate from tree el. centralize biz logic.
+  - combine biz logic of tmi-tree and app.js move to background.js.
+  - use model everywhere. consistency on using els.  mock chrome.* better.
+1 right in search (only goes to active tab). test.
+- redraw after pin?
+- css,
+- optimize all,
 3 generic tree element (ludwig)
 - id-# vs. id.
-- Save LRU tabs. superstars.
+- Bookmark LRU tabs. superstars.
+- add chrome.sessions support for restoring closed wintabs.
+- ? use chrome.history to match open wins with saved wins?
 2 move app.js to elements. get rid of initApp.
 0 movement + {shift: jump, ctrl: bring tab? select?}.
   - jump: within level: {top, pin, active, bottom}
@@ -100,10 +115,7 @@
 ! search: if matches win it should show even if viewTabs.length === 0
 - make sure not running polyfill (see WebComponentsReady)
 - selected count at top
-1 two copies of app.js in dist
-2 move initApp into tmi-browser?
 1 don't load extra stuff(unused elements, mocks, duplicate in vulcanized)
-- pin: show which wins are pinned. reverse order of unpinned wins.
 3 make generic tree of nodes element
 0 numbers goto without pressing '
 - fix and test treeQuery...

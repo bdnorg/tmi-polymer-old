@@ -386,22 +386,40 @@
         makeId: function(id){return 'id-' + id;},
         isHidden: function(vt){ return (!vt || vt.length === 0);},
         _initData: function() {
+          tmi.timeStart('tmi-tree.html:_initData');
           var self = this;
+          tmi.chrome.tabs.query({active: true, currentWindow: true},
+              function(tabs){
+                console.log('LC: created -> tabs.query callingTab');
+                self.callingTab = tabs[0];
+
           tmi.chrome.windows.getAll({populate: true}, function(newWins) {
             console.log('LC: _initData -> windows.getAll');
             var nodes = self._syncWins(newWins);
             self.set('nodes', nodes);
             self.setPointerToCurrentTab();
             self.updateMarks();
+            tmi.timeEnd('tmi-tree.html:_initData');
+          });
+
+
           });
 
         },
         updateMarks: function() {
           var marks = tmi.bg.tree.marks;
           var self = this;
+          var wins = this.root.querySelectorAll('tmi-window');
+          for (var i= 0; i < 5; i++) {
+            if (wins[i]) {
+              wins[i].set('mark', (i+1).toString());
+            }
+          }
           var nodes = this.getAllEls();
           _.each(nodes, function(node) {
-            node.set('mark', marks[node.id]);
+            if (marks[node.id]) {
+              node.set('mark', marks[node.id]);
+            }
           });
           Polymer.dom.flush();
         },
@@ -494,8 +512,11 @@
 
         //Nodes
         treeQuery: function(query){
+          tmi.timeStart('tmi-tree.html:treeQuery');
           Polymer.dom.flush();
-          return this.$$('tmi-window:not([hidden]) .iron-collapse-opened ' + query + ', ' + query +':not([hidden])');
+          var result = this.$$('tmi-window:not([hidden]) .iron-collapse-opened ' + query + ', ' + query +':not([hidden])');
+          tmi.timeEnd('tmi-tree.html:treeQuery');
+          return result;
         },
         treeQueryAll: function(query){
           Polymer.dom.flush();
@@ -615,10 +636,11 @@
           });
         },
         setPointerToTabId: function(tabId) {
-          Polymer.dom.flush();
+          tmi.timeStart('tmi-tree.html:setPointerToTabId');
           this.setPointerToTab(
             this.treeQuery('#' + tabId)
           );
+          tmi.timeEnd('tmi-tree.html:setPointerToTabId');
         },
         setPointerToTab: function(node) {
           var pw = this.treeQuery('#' + this.makeId(node.tab.windowId));
@@ -699,7 +721,7 @@
           //return this.$.selector.selectedValues;
         },
         getSelectedItems: function(){
-          return _.where(this.getVisibleEls(), {selected: true});
+          return _.where(this.getAllEls(), {selected: true});
           //return this.$.selector.selectedItems;
         },
         getSelectedTabs: function(){
@@ -760,17 +782,6 @@
           var newPointer = elList[(i + offset + elList.length) % elList.length];
           this.setPointer(newPointer);
           return;
-          // Polymer.dom.flush();
-          // var elList;
-          // var pointer = this.getPointer();
-          // if (pointer.isTab) { //tab
-          //   elList = this.getVisibleEls();
-          // } else { //win
-          //   elList = this.getVisibleWinEls();
-          // }
-          // var i = this.getPointerIndex(elList);
-          // var newPointer = elList[(i + incr + elList.length) % elList.length];
-          // this.setPointer(newPointer);
         },
         down: function() {
           this.moveUpDownBy(1);
@@ -794,14 +805,12 @@
           }
         },
         left: function(){
-          //this.getPointerWin().toggle();
-          //return;
           var pointer = this.getPointer();
           if (pointer.isTab) {
             this.setPointerId(this.makeId(pointer.tab.windowId));
-          } else {  //win
-            pointer.hide();
           }
+          this.getPointer().hide();
+          //this.getPointerWin().toggle();
         },
 
         //nav wintabs
@@ -813,6 +822,7 @@
           var moved = this.nodes[i];
           this.splice('nodes', i, 1);
           this.unshift('nodes', moved);
+          //this.app.redrawTree();
         },
         hideAll: function(){
           var wins = this.treeQueryAll('tmi-window iron-collapse');
@@ -829,6 +839,7 @@
         },
         searchMode: function(e){
           this.inputMode = true;
+          this.state = 'Search...';
           this.$$('#searchBox').focus();
         },
         getNodeFromMark: function(mark){
@@ -844,43 +855,40 @@
         goMark: function(){
           var self = this;
           self.state = 'Goto...';
-          Mousetrap.record(function(seq) {
-            var seqStr = seq.join('');
-            self.setPointer(self.getNodeFromMark(seqStr));
-            self.state = '';
+          this.getOneKey((key) => {
+            self.setPointer(self.getNodeFromMark(key));
           });
         },
         mark: function(){
           var self = this;
-          self.state = 'Mark...';
-          Mousetrap.record(function(seqAr) {
-            self.state = '';
-            var seq = seqAr.join('');
-            if (seq === 'esc' ) { return; }
-            self.setMarkId(self.getPointer().id, seq);
+          this.state = 'Mark...';
+          this.getOneKey((key) => {
+            self.setMarkId(self.getPointer().id, key);
           });
         },
-        setMarkId: function(nodeId, seq) {
+        getOneKey: function(func) {
+          var self = this;
+          Mousetrap.pause();
+          document.body.addEventListener('keydown', (e) => {
+            e.preventDefault();
+            self.state = '';
+            if (e.key !== 'Escape' ) {
+              func(e.key);
+            }
+            setTimeout( () => {Mousetrap.unpause();}, 50);
+          }, {once: true});
+        },
+        setMarkId: function(nodeId, key) {
           var marks = tmi.bg.tree.marks;
-          if (seq === 'backspace' ) {
+          if (key === 'backspace' ) {
             delete(marks[nodeId]);
           } else {
-            marks[nodeId] = seq;
+            _.each(marks, (k, id) => {
+              if (k === key) { delete(marks[id]); }
+            });
+            marks[nodeId] = key;
           }
           this.updateMarks();
-          // var oldMarkNode = this.getNodeFromMark(seq);
-          // if (oldMarkNode){
-          //   this.setMark(oldMarkNode, '');
-          // }
-          // if (node) {
-          //   node.set('mark', seq); //needed? use model
-          // }
-          // if (seq) {
-          //   this.set('marks.' + node.id, seq); //needed? use bg
-          // } else {
-          //   delete(this.marks[node.id]);
-          // }
-          // tmi.bg.tree.setMarks(this.marks);
         },
 
         //manage wintabs
@@ -899,10 +907,14 @@
         focusMark: function(seq) {
           this.focusNode(this.getNodeFromMark(seq));
         },
-        putAtPointer: function(){
+        putBeforePointer: function(){
           this.putAtNode(this.getPointer());
         },
-        putAtNode: function(node){
+        putAfterPointer: function(){
+          this.putAtNode(this.getPointer(), true);
+        },
+        // put node before if isbefore === true
+        putAtNode: function(node, isAfter){
           var tabIds = this.getSelectedTabsId();
           if (tabIds.length === 0) {
             var tabs = this.nodesToTabs([this.getPointer()]);
@@ -911,13 +923,13 @@
           var index, windowId;
           if (node.isTab) {
             windowId = node.tab.windowId;
-            index = node.tab.index + 1;
+            index = node.tab.index + (isAfter ? 1 : 0);
           } else {
             windowId = node.win.id;
-            index = -1;
+            index = isAfter ? -1 : 1;
           }
-          chrome.tabs.move(tabIds, {windowId: windowId, index: index});
-          //this.closeTmi();
+          tmi.chrome.tabs.move(tabIds, {windowId: windowId, index: index});
+          this.app.redrawTree();
         },
         putInNewWin: function(seq){
           var self = this;
@@ -938,20 +950,18 @@
               }
             });
           });
-          //this.closeTmi();
+          this.app.redrawTree();
         },
         moveToTag: function(){
           var self = this;
           self.state = 'Move to...';
-          Mousetrap.record(function(seqAr) {
-            var seq = seqAr.join('');
-            var destNode = self.getNodeFromMark(seq);
+          this.getOneKey((key) => {
+            var destNode = self.getNodeFromMark(key);
             if (destNode) {
               self.putAtNode(destNode);
             } else {
-              self.putInNewWin(seq);
+              self.putInNewWin(key);
             }
-            self.state = '';
           });
         },
         name: function(){},
@@ -965,7 +975,7 @@
 //        makeFreezer: function(closed){},
 //        browser.freezeTab: function(tab){},
         freezeCurrentTab: function(){
-          tmi.bg.fz.freezeTab(this.callingTab.id);
+          tmi.bg.fz.freezeTabWithThumbnail(this.callingTab.id);
         },
         freezeWindow: function(){
           tmi.bg.fz.freezeWindow(this.callingTab.windowId);

@@ -4,8 +4,15 @@ window.Polymer = window.Polymer || {};
 window.Polymer.dom = 'shadow';
 
 window.tmi = window.tmi || {};
+tmi.timeStart = function(label) {
+  if (tmi.DEBUG){ console.time(label); }
+};
+tmi.timeEnd = function( label) {
+  if (tmi.DEBUG){ console.timeEnd(label); }
+};
 
 tmi.initExtension = function(){
+  tmi.DEBUG = true;
   tmi.bg = chrome.extension.getBackgroundPage();
   tmi.chrome = {};
   tmi.chrome.tabs = chrome.tabs;
@@ -14,18 +21,19 @@ tmi.initExtension = function(){
 
 };
 tmi.initMockExtension = function() {
-  console.log('in initApp.js tmi.initMockExtension');
+  tmi.DEBUG = true;
+
+  tmi.timeStart('initApp.js');
 
   tmi.mockLog = function() {
-    console.log('Mock This: ', this, 'Args: ', arguments);
+    console.log('Mock:: this: ', this, ' arguments: ', arguments);
   };
   tmi.makeMocks = function(funcNames) {
     var result = {};
-    for(var i=0; i < funcNames.length; i++){
-      result[ funcNames[i] ] = tmi.mockLog;
-    }
+    funcNames.forEach((name) => {
+      result[name] = tmi.mockLog;
+    });
     return result;
-//  return _.zipObject(funcNames, [...]);
   };
   tmi.loadScript = function(url, callback) {
     // Adding the script tag to the head as suggested before
@@ -63,10 +71,10 @@ tmi.initMockExtension = function() {
   chrome.commands.onCommand = tmi.makeMocks(['addListener']);
 
   tmi.chrome = {};
-  tmi.chrome.tabs = tmi.makeMocks(['get', 'update', 'sendMessage', 'create', 'captureVisibleTab']);
+  tmi.chrome.tabs = tmi.makeMocks(['get', 'update', 'move', 'sendMessage', 'create', 'captureVisibleTab']);
   tmi.chrome.windows = tmi.makeMocks(['get', 'update', 'getCurrent']);
 
-  tmi.bgCallBack = function (){
+  tmi.testDataCallBack = function(){
     tmi.bg.tree = tmi.bg.tree || {};
     tmi.bg.tree.nodes = [
         {id: 'id-deleted', winId: 999999, hash: 1},  // should get deleted
@@ -96,12 +104,11 @@ tmi.initMockExtension = function() {
       setTimeout(func(results), 0);
       //      setTimeout(func([tmi.testWinsIndex[12].tabs[42]]), 0);
     };
+    tmi.loadHtml('/background.html');
 
+    tmi.timeEnd('initApp.js');
   }; // end tmi.bgCallBack
 
-  tmi.testDataCallBack = function(){
-    tmi.loadHtml('/background.html', tmi.bgCallBack);
-  };
   tmi.loadScript('/scripts/chrome.windows.test.data.js', tmi.testDataCallBack);
 
 }; //end tmi.initMockExtension

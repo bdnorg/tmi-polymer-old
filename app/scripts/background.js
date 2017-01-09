@@ -1,12 +1,14 @@
 
 console.log('In background.js');
 
-var browser = browser || {};
-var tree = tree || {};
-var fz = fz || {};
-var bgapp = bgapp || {};
 window.tmi = window.tmi || {};
-tmi.bg = {browser: browser, tree: tree, fz: fz, bgapp: bgapp};
+tmi.bg = tmi.bg || {};
+
+//only exist locally if not already in tmi.bg
+var browser = tmi.bg.browser || {};
+var tree = tmi.bg.tree || {};
+var fz = tmi.bg.fz || {};
+var bgapp = tmi.bg.bgapp || {};
 
 function log(message, level) {
   var logLevel=1;
@@ -120,15 +122,15 @@ fz.restoreFromLawnchair = function(key) {
 };
 fz.restoreFromLawnchair ('frozenIndex');
 
-fz.freezeTab = function(tabId, callback){
-  chrome.tabs.get(tabId, function (tabb){
+fz.freezeTab = function(tabId, dataUrl, callback){
+  chrome.tabs.get(tabId, function (tab){
     //don't freeze a frozen page
-    if (tabb.url.indexOf('tmiFrozen') !== -1) {
+    if (tab.url.indexOf('tmiFrozen') !== -1) {
       if(callback) {callback();}
       return false;
     }
-    chrome.tabs.update(tabId, {active: true}, function (tab){
-      chrome.tabs.captureVisibleTab(tab.windowId, function(dataUrl) {
+    //chrome.tabs.update(tabId, {active: true}, function (tab){
+      //chrome.tabs.captureVisibleTab(tab.windowId, function(dataUrl) {
         if(!dataUrl){console.log('Missing dataUrl. ', tab); }
         var frozenObj = {url: tab.url, title: 'Fz:' + tab.title, winId: tab.windowId, favIconUrl: tab.favIconUrl, dataUrl: dataUrl};
 
@@ -150,7 +152,15 @@ fz.freezeTab = function(tabId, callback){
             if(callback) {callback();}
           });
         });
-      });
+      //});
+    //});
+  });
+};
+fz.freezeTabWithThumbnail = function(tabId, callback){
+  chrome.tabs.update(tabId, {active: true}, function (tab){
+    chrome.tabs.captureVisibleTab(tab.windowId, function(dataUrl) {
+      console.log('dataUrl', dataUrl);
+      fz.freezeTab(tabId, dataUrl, callback);
     });
   });
 };
@@ -159,9 +169,9 @@ fz._freezeTabsRecurse = function(tabs, callback){
   if (tabs.length > 1) {
     var tab = tabs.shift();
     console.log('Tabs left to freeze: ', tabs.length);
-    fz.freezeTab(tab.id ,function(){fz._freezeTabsRecurse(tabs, callback);});
+    fz.freezeTab(tab.id , '', function(){fz._freezeTabsRecurse(tabs, callback);});
   } else {
-    fz.freezeTab(tabs[0].id, function(){
+    fz.freezeTab(tabs[0].id, '', function(){
       callback();
     });
   }

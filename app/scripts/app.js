@@ -14,8 +14,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   // and give it some initial binding values
   // Learn more about auto-binding templates at http://goo.gl/Dx1u2g
   //var app = document.querySelector('#app');
-  window.app = window.app || {};
   console.log('LC: app.js');
+  window.app = window.app || {};
+
+  tmi.timeStart('app.js');
 
   window.onload = function() {
     console.log('LC: window.onload event');
@@ -29,10 +31,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 //    console.log('LC: dom-change event');
 //  });
   app.init = function() {
-    console.log('App ready!');
     app.roott = document.querySelector('#tmiTree');
+    app.roott.app = app;
     _.bindAll(app.roott, app.roott.methodNames);
-
     app.loadKeyMap();
 
     //for debugging
@@ -74,6 +75,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   };
 
   app.loadKeyMap = function(){
+  tmi.timeStart('app.js:loadKeyMap');
 // * Keys: [keys, desc, func]
 //      args: docHeader, doc, none, anyKey, global,
 //        win, tab, pointer
@@ -109,7 +111,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       ['o', '(un)pin window', app.roott.pin],
       ['/', 'search', function(e){app.roott.searchMode(e);} ],
 //      ['esc', 'Suspend search', function(e){app.clearSearch(e);} ],
-      ['esc', 'Suspend search', false ],
+      ['esc', 'suspend search', app.clearSearch ],
       ['\'', 'goto mark', app.roott.goMark],
       ['m', 'create mark', app.roott.mark],
       ['m DEL', 'delete mark', false],
@@ -130,9 +132,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     ['docHeader', 'Arrange', [
       ['x', 'select node', app.roott.selectPointer],
       ['X', 'select tabs to end of win', app.roott.selectToEnd],
-      ['p', 'paste selected after pointer', app.roott.putAtPointer],
-      ['P', 'selected to new win', () => app.roott.putInNewWin('') ],
-      ['y', 'move pointer to mark (new win)', app.roott.moveToTag],
+      ['p', 'Paste selected after pointer', app.roott.putAfterPointer],
+      ['P', 'Paste selected before pointer', app.roott.putBeforePointer],
+      ['y', 'move pointer/select to mark (or new win)', app.roott.moveToTag],
+      ['Y', 'move pointer/select to new win', () => app.roott.putInNewWin('') ],
     ]],
 
 //Freezing (acts on current rather than pointer)
@@ -144,12 +147,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 //      ['w d', 'Window Delete (for closed)', app.roott.deleteWin],
       ['f f', 'Freeze calling tab', app.roott.freezeCurrentTab],
       ['f p', 'Freeze pointer', app.roott.branchPointerWrap({
-           tab: tmi.bg.freezeTab,
+           tab: tmi.bg.freezeTabWithThumbnail,
            win: tmi.bg.freezeWindow,
          })
       ],
       ['f w', 'Freeze win (non-pinned)', app.roott.freezeWindow],
-      ['f a', 'Freeze ALL (non-pinned)', app.roott.freezeAll],
+      ['f a', 'Freeze ALL (non-pinned)', app.roott.freezeAllWindows],
 //      ['f b', 'Freeze to Bookmark', app.roott.bmFreeze],
 //      ['F', 'Make Freezer (from closed)', app.roott.makeFreezer],
     ]],
@@ -171,11 +174,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     app.makeHandler = function(func) {
       return function(e, combo){
+        console.log('combo: ', combo, ' key: ', e);
         if (app.roott.inputMode) {
           if (combo === 'esc') {
             app.blurSearch(e);
-          } else if (combo === 'enter') {
-            app.blurSearch(e);
+//          } else if (combo === 'enter') {
+//            app.blurSearch(e);
           }
           return;
         }
@@ -197,6 +201,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
     }
 
+    //prevent esc from closing popup
+    document.body.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape'){
+        e.stopPropagation();
+        e.preventDefault();
+      }
+    });
+
     app.clearSearch = function(e){
       e.preventDefault();
       app.searchstr = '';
@@ -208,11 +220,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     app.blurSearch = function(e) {
       searchBox.blur();
       app.roott.inputMode = false;
+      app.roott.state = '';
     };
     var searchKey = new Mousetrap(searchBox);
     searchKey.bind('esc', app.blurSearch);
     searchKey.bind('enter', app.blurSearch);
+    // document.body.addEventListener('keyup', (e) => {
+    //   console.log('key: ', e);
+    // });
 
+    tmi.timeEnd('app.js:loadKeyMap');
   }; // end loadKeyMap
 
   app.redrawTree = function() {
@@ -222,11 +239,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   };
   app.drawTree = function() {
     console.log('drawTree');
+    tmi.timeStart('app.js:drawTree');
     var newTree = document.createElement('tmi-tree');
     newTree.setAttribute('id','tmiTree');
     document.body.appendChild(newTree);
     app.init();
+    tmi.timeEnd('app.js:drawTree');
   };
 
   app.drawTree();
+  tmi.timeEnd('app.js');
 })(document);
