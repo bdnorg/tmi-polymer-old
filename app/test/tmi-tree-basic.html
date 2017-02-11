@@ -133,20 +133,14 @@
           flush(function() {
             el.down();
             assert.equal(el.getPointer().id, 'id-1112');
-            el.left();
-            el.up();
-            el.up();
-            el.up();
-            el.up();
-            // el.right();
-            // el.down();
-            // el.down();
-            assert.equal(el.getPointer().id, 'id-604');
             //check goto top/bottom of tabs
             el.setPointerToTop();
-            assert.equal(el.getPointer().id, 'id-601');
+            assert.equal(el.getPointer().id, 'id-1101');
             el.setPointerToBottom();
-            assert.equal(el.getPointer().id, 'id-605');
+            assert.equal(el.getPointer().id, 'id-1190');
+            el.left();
+            el.up();
+            assert.equal(el.getPointer().id, 'id-8');
             //check goto top/bottom of wins
             el.down();
             el.setPointerToTop();

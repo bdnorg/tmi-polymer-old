@@ -4,10 +4,9 @@
   <style>
     :host {display: block; background-color: linen;}
     :host([pointer]) {background-color: lightgreen;}
-    [activetab] {background-color: red;}
+    [activetab] {background-color: pink;}
     .ind {margin-left: 2em;}
     .clip {white-space: nowrap; overflow: hidden;}
-    }
   </style>
   <template>
     <div>
@@ -70,6 +69,8 @@
 </script>
 
 <dom-module id="tmi-win-display">
+  <style>
+  </style>
   <template>
      [
      <template is="dom-if" if="{{!win.tabs.0.favIconUrl}}">
@@ -155,17 +156,19 @@
    .pointer {
      background-color: yellow;
    }
+   [pinnedwin] {background-color: yellow;}
+   [pinnedwinOld] {text-decoration: underline;}
   </style>
   <template>
 <!--
     <div class="clip {{ {pointer: win.id == pointer} | tokenList}}">
 -->
     <div class="clip"> <div id="pnode">
-      <span>{{mark}}</span>
-      <span on-click="toggle">
+      <span on-click="toggle" pinnedwin$="[[node.pinned]]">
         <iron-icon icon="expand-more"
                    style="height: 16px; width: 16px;"></iron-icon>
       </span>
+      <span>{{mark}}</span>
       <input type="checkbox" name="winCheck"
              checked="{{selected::input}}">
       <span on-click="movePointer">
@@ -220,7 +223,7 @@
           type: Boolean,
           notify: true,
           value: false,
-        }
+        },
       },
       ready: function() {
       },
@@ -440,10 +443,8 @@
             }
           });
 
-          // Could add separator for pinned / not
-
           var self = this;
-          _.each(newWins, function(win, j){
+          _.eachRight(newWins, function(win, j){
             //var win = newWins[j];
             if (newWinsTodo[win.id]) { //not already added above
               var node = {};
@@ -455,7 +456,6 @@
               result.push(node);
             }
           });
-          tmi.bg.tree.setNodes(result); // save nodes in bg
           return result;
         }, //end _syncWins()
 
@@ -818,10 +818,20 @@
 //        browser.focusTab: function(tab){},
         pin: function(){
           var pointerId = this.getPointerWin().id;
-          var i = _.findIndex(this.nodes, {id: pointerId});
-          var moved = this.nodes[i];
-          this.splice('nodes', i, 1);
-          this.unshift('nodes', moved);
+          var moveFromIndex = _.findIndex(this.nodes, {id: pointerId});
+          var moved = this.nodes[moveFromIndex];
+          var unpinnedIndex = _.findIndex(this.nodes, (node) => {
+            return (! node.pinned);
+          });
+          this.set('nodes.'+ moveFromIndex  +'.pinned', ! moved.pinned);
+          this.splice('nodes', moveFromIndex, 1);
+          if (moved.pinned) {
+            this.splice('nodes', unpinnedIndex, 0, moved);
+          } else {
+            this.splice('nodes', unpinnedIndex-1, 0, moved);
+          }
+          tmi.bg.tree.setNodes(this.nodes); // save nodes in bg
+          this.updateMarks();
           //this.app.redrawTree();
         },
         hideAll: function(){

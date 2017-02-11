@@ -81,7 +81,9 @@ tree.getNodes = function(){
   return tree.nodes;
 };
 tree.setNodes = function(nodes){
-  tree.nodes = nodes;
+  var saveNodes = _.filter(nodes, {pinned: true});
+  console.log('saveNodes', saveNodes);
+  tree.nodes = saveNodes;
 };
 tree.getMarks = function(){
   return tree.marks;

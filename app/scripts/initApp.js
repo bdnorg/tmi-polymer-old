@@ -77,15 +77,15 @@ tmi.initMockExtension = function() {
   tmi.testDataCallBack = function(){
     tmi.bg.tree = tmi.bg.tree || {};
     tmi.bg.tree.nodes = [
-        {id: 'id-deleted', winId: 999999, hash: 1},  // should get deleted
-        {id: 'id-10', winId: 10, hash: 0},
-        {id: 'id-1', winId: 1, hash: 0, state: 'save'},
-        {id: 'id-2', winId: 2, hash: 0, name: 'Name id-2'},
-        {id: 'id-9', winId: 9, hash: 0, name: 'Name id-9'},
-        {id: 'id-3', winId: 3, hash: 0},
+        {id: 'id-deleted', pinned: true, winId: 999999, hash: 1},  // should get deleted
+        {id: 'id-10', pinned: true, winId: 10, hash: 0},
+        {id: 'id-1', pinned: true, winId: 1, hash: 0, state: 'save'},
+        {id: 'id-2', pinned: true, winId: 2, hash: 0, name: 'Name id-2'},
+        {id: 'id-9', pinned: true, winId: 9, hash: 0, name: 'Name id-9'},
+        {id: 'id-3', pinned: true, winId: 3, hash: 0},
       ];
 
-    tmi.bg.tree.marks = {'id-3': 'z', 'id-604': '4'};
+    tmi.bg.tree.marks = {'id-3': 'z', 'id-604': '7'};
 
     tmi.testWinsIndex = _.indexBy(tmi.testWins, 'id');
     tmi.chrome.windows.getCurrent = function(func){

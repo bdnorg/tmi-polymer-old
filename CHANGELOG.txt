@@ -66,7 +66,9 @@
 - P/p before/after pointer.
 - Redraw tree after moving tabs
 - freeze all no longer captures thumbnails.
-
+--- commit
+- esc clears search when searchBox isn't focused
+- added pinning and reverse unpinned order.
 
 ---- head
 
@@ -78,28 +80,35 @@
 ## app interface
   # upward: user clicked/doubleclicked/selected/uncollapsed.
   # which use dom query:
-! second esc should clear search (stop prop on doc?)(see keydown listener preventing popup close).
-  - marking 1-5 doesn't clear default 1-5. key marks by key (not id).
-0 pin: show which wins are pinned. reverse order of unpinned wins.
-0 save/restore order / marks
-0 start with active win closed.  At start, only show only active tab under win.
+! marking 1-5 doesn't clear default 1-5. can be dups. reverse keys/vals in marks.
+! fix tests
+! fix menu
+0 make hybrid wins: real win + bookmarked win.
+0 pin: move pinned wins in tree. spacer between pinned.
+0 save order/marks across sessions
+0 publish in store.
+1 start with active win closed.  At start, show only active tab under win.
   - graphically show: # tabs, 1st and active tab, tabs w/ a mark.
   - show extra win info for pointer ()
-0 dedup on save bookmarks. add date. wins w/ some tabs open and some bookemarked.
+0 win names
+0 dedup on save bookmarks. add date.
 0 open bookmarks. search bookmarks.
-0 win names,
+  - wins w/ some tabs open and some bookemarked.
 0 find dup URLs.  find like domains.  google search also shows saved/open urls.
-- better J/K g/G
+- better J/K g/G. jump to bottom/top of screen
+- be consistent on moving tree nodes vs. wintab mgmt.
+  - Left on win to lock movement of wintab (like tivo).
 - right goes to pointer position at previous "left" key, or active, or first tab.
 - open vs point to (via shift key?).
 - refactor: polymerObj should be defined in a function with local variables.
   - biz logic separate from tree el. centralize biz logic.
   - combine biz logic of tmi-tree and app.js move to background.js.
   - use model everywhere. consistency on using els.  mock chrome.* better.
+- clean up console.logs
 1 right in search (only goes to active tab). test.
 - redraw after pin?
 - css,
-- optimize all,
+- faster initial draw, optimize all,
 3 generic tree element (ludwig)
 - id-# vs. id.
 - Bookmark LRU tabs. superstars.
@@ -112,12 +121,11 @@
     - right-again: jump to top/bottom/active? open all? open tab details?
   # up/down only at same level?
 - names: input, search(test), save
-! search: if matches win it should show even if viewTabs.length === 0
+! search: if matches win (name) it should show even if viewTabs.length === 0
 - make sure not running polyfill (see WebComponentsReady)
 - selected count at top
 1 don't load extra stuff(unused elements, mocks, duplicate in vulcanized)
 3 make generic tree of nodes element
-0 numbers goto without pressing '
 - fix and test treeQuery...
 1 esc -> start over (clear search and begin at tab even when not in search mode)
 1 make menu work

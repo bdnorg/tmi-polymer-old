@@ -65,7 +65,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
   app.showHelp = function(){
 //   document.querySelector('paper-drawer-panel').togglePanel();
-   app.$$('paper-drawer-panel').togglePanel();
+   app.root.$$('paper-drawer-panel').togglePanel();
   };
 
   // Scroll page to top and expand header
@@ -108,10 +108,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     //nav wintabs
     ['docHeader', 'Navigate', [
       ['enter', 'focus / open', app.roott.focusPointer],
-      ['o', '(un)pin window', app.roott.pin],
+      ['o', '(un)pin win in tree', app.roott.pin],
       ['/', 'search', function(e){app.roott.searchMode(e);} ],
 //      ['esc', 'Suspend search', function(e){app.clearSearch(e);} ],
-      ['esc', 'suspend search', app.clearSearch ],
+      ['esc', 'suspend / clear search', false],
       ['\'', 'goto mark', app.roott.goMark],
       ['m', 'create mark', app.roott.mark],
       ['m DEL', 'delete mark', false],
@@ -204,6 +204,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     //prevent esc from closing popup
     document.body.addEventListener('keydown', (e) => {
       if (e.key === 'Escape'){
+        console.log('in listener');
+        app.blurClearSearch(e);
         e.stopPropagation();
         e.preventDefault();
       }
@@ -211,7 +213,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     app.clearSearch = function(e){
       e.preventDefault();
-      app.searchstr = '';
+      app.roott.searchstr = '';
       app.roott.hideAll();
       app.roott.setPointerToCurrentWin();
       app.roott.clearSelected();
@@ -222,8 +224,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       app.roott.inputMode = false;
       app.roott.state = '';
     };
+    app.blurClearSearch = function(e) {
+      console.log('active: ', document.activeElement.nodeName);
+      if (document.activeElement.nodeName === 'TMI-TREE'){
+        app.blurSearch(e);
+      } else {
+        app.clearSearch(e);
+      }
+    };
     var searchKey = new Mousetrap(searchBox);
-    searchKey.bind('esc', app.blurSearch);
+//    searchKey.bind('esc', app.blurClearSearch);
     searchKey.bind('enter', app.blurSearch);
     // document.body.addEventListener('keyup', (e) => {
     //   console.log('key: ', e);
